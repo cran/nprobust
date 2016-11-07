@@ -1,0 +1,14 @@
+useDynLib(nprobust)
+S3method(print,lprobust)
+S3method(summary,lprobust)
+S3method(print,lpbwselect)
+S3method(summary,lpbwselect)
+S3method(print,kdrobust)
+S3method(summary,kdrobust)
+S3method(print,kdbwselect)
+S3method(summary,kdbwselect)
+importFrom(Rcpp, evalCpp)
+exportPattern("^[[:alpha:]]+")
+importFrom("stats","integrate","complete.cases","deriv","dnorm","kernel","lm","optimize","pnorm","poly","qnorm","quantile","sd")
+
+
