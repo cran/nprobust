@@ -1,21 +1,22 @@
 \name{nprobust-package}
 \alias{nprobust-package}
 \alias{nprobust}
-\title{Robust Data-Driven Statistical Inference for Local Polynomial Regression and Kernel Density Estimation}
+\title{Nonparametric Robust Estimation and Inference Methods using Local Polynomial Regression and Kernel Density Estimation}
 \description{
-   This package provides tools for data-driven  analytical statistical inference for Local Polynomial Regression (LPR) estimators and Kernel Density Estimation (KDE): \code{\link{lprobust}} to construct local-polynomial point estimators and robust confidence intervals, \code{\link{lpbwselect}} to perform bandwidth selection for the different procedures implemented.}
+   This package provides tools for data-driven statistical analysis using local polynomial regression (LPR) and kernel density estimation (KDE) methods: \code{\link{lprobust}} for local polynomial point estimation and robust bias-corrected inference, \code{\link{lpbwselect}} for local polynomial bandwidth selection, \code{\link{kdrobust}} for kernel density point estimation and robust bias-corrected inference, \code{\link{kdbwselect}} for kernel density bandwidth selection, and \code{\link{nprobust.plot}} for plotting results.}
 \details{
 \tabular{ll}{
 Package: \tab nprobust\cr
 Type: \tab Package\cr
-Version: \tab 0.0.1\cr
-Date: \tab 2016-11-06\cr
+Version: \tab 0.1.0\cr
+Date: \tab 2017-09-01\cr
 License: \tab GPL-2\cr
 }
-Function for LPR statistical inference: \code{\link{lprobust}}\cr
-Function for LPR bandwidths selection: \code{\link{lpbwselect}}\cr
-Function for KDE statistical inference: \code{\link{kdrobust}}\cr
-Function for KDE bandwidths selection: \code{\link{kdbwselect}}\cr
+Function for LPR estimation and inference: \code{\link{lprobust}}\cr
+Function for LPR bandwidth selection: \code{\link{lpbwselect}}\cr
+Function for KDE estimation and inference: \code{\link{kdrobust}}\cr
+Function for KDE bandwidth selection: \code{\link{kdbwselect}}\cr
+Function for graphical analysis: \code{\link{nprobust.plot}}\cr
 }
 \author{
 Sebastian Calonico, University of Miami, Coral Gables, FL.  \email{scalonico@bus.miami.edu}.

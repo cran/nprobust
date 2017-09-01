@@ -1,38 +1,55 @@
 ### version 0.0.1  06Nov2016
+### version 0.0.2  10Mar2017
 
-kdrobust = function(x, c, deriv=0, p=2, h=NULL, b=NULL, rho=NULL, 
-                    kernel="epan", bwselect="mse", level=95, all=FALSE, subset = NULL) {
+kdrobust <- function(x, eval=NULL, neval=NULL, h=NULL, b=NULL, rho=NULL, kernel="epa", 
+                    bwselect="mse-dpi", bwcheck=NULL, level=95, subset = NULL) {
   
+  p <- 2
+  deriv <- 0
   if (!is.null(subset)) x <- x[subset]
-  na.ok = complete.cases(x) 
-  x = x[na.ok]
+  na.ok <- complete.cases(x) 
+  x <- x[na.ok]
   
-  kernel = tolower(kernel)
-  #bwselect = toupper(bwselect)
+  kernel   <- tolower(kernel)
+  bwselect <- tolower(bwselect)
   
-  x_min = min(x);  x_max = max(x)
-  N = length(x)
-  quant = -qnorm(abs((1-(level/100))/2))
+  x.min <- min(x);  x.max <- max(x)
+  N <- length(x)
+  #quant <- -qnorm(abs((1-(level/100))/2))
+  
+  if (is.null(eval)) {
+    if (is.null(neval)) {
+      #eval <- unique(x)
+      qseq <- seq(0,1,1/(20+1))
+      eval <- quantile(x, qseq[2:(length(qseq)-1)])
+    }
+    else {
+      #eval <- seq(x.min,x.max,length.out=neval)
+      qseq <- seq(0,1,1/(neval+1))
+      eval <- quantile(x, qseq[2:(length(qseq)-1)])
+    }
+  }
+  neval <- length(eval)
   
   #####################################################   CHECK ERRORS
-  exit=0
+  exit<-0
     #if (kernel!="uni" & kernel!="uniform" & kernel!="tri" & kernel!="triangular" & kernel!="epa" & kernel!="epanechnikov" & kernel!="" ){
     #  print("kernel incorrectly specified")
     #  exit = 1
     #}
     
-  if  (bwselect!="mse" & bwselect!="cer" & bwselect!=""){
+  if  (bwselect!="imse-rot" & bwselect!="imse-dpi" & bwselect!="mse-dpi" & bwselect!="ce-dpi" & bwselect!="ce-rot" & bwselect!="all" & bwselect!=""){
     print("bwselect incorrectly specified")  
     exit = 1
   }
   
-    if (c<=x_min | c>=x_max){
-      print("c should be set within the range of x")
-      exit = 1
-    }
+    #if (min(eval)<x.min | max(eval)>x.max){
+    #  print("evaluation points should be set within the range of x")
+    #  exit = 1
+    #}
     
-    if (deriv<0){
-      print("p,q,deriv and matches should be positive integers")
+    if (p<0 | deriv<0 ){
+      print("p should be positive integer")
       exit = 1
     }
     
@@ -52,147 +69,131 @@ kdrobust = function(x, c, deriv=0, p=2, h=NULL, b=NULL, rho=NULL,
     if (exit>0) stop()
     if (!is.null(h)) bwselect = "Manual"
 
-    
-  if (kernel=="epanechnikov" | kernel=="epa") {
-    kernel_type = "Epanechnikov"
-  }   else if (kernel=="uniform" | kernel=="uni") {
-    kernel_type = "Uniform"
-  }   else  {
-    kernel_type = "Triangular"
-  }
+  kernel.type <- "Gaussian"  
+  if (kernel=="epa") kernel.type <- "Epanechnikov"
+  if (kernel=="uni") kernel.type <- "Uniform"
 
-  ############################################################################################
-    #print("Preparing data.") 
   if (!is.null(h) & is.null(rho) & is.null(b)) {
-    rho = 1
-    b = h
+    rho <- rep(1,neval)
+    b <- h
   }
-  if (!is.null(h) & !is.null(rho) ) b = h/rho
-  
+  if (!is.null(h) & !is.null(rho) ) b <- h/rho
   if (is.null(h)) {
-    kdbws=kdbwselect(x=x, c=c, deriv=deriv, p=p, bwselect=bwselect, kernel=kernel)
-    h = kdbws$bws[1]
-    b = kdbws$bws[2]
-    rho = h/b
+      kdbws <- kdbwselect(x=x, eval=eval, bwselect=bwselect, bwcheck=bwcheck, kernel=kernel)
+      h <- kdbws$bws[,2]
+      b <- kdbws$bws[,3]
+      rho <- h/b  
   }
   
-
-  ####################################################
-  
-  u = (x-c)/h
-  N = length(x)
-  K.d = kern.fun(u     , r=p,   d=deriv, kernel=kernel)
-  L.r = kern.fun(rho*u , r=p+2, d=p,     kernel=kernel)
-  
-  K = K.d$k.x
-  M = K - rho^(1+p)*L.r$k.x*L.r$m.k
-  
-  f.hat.us = mean(K)/h
-  f.hat.bc = mean(M)/h
-  
-  se.us = sqrt((mean((K^2)) - mean(K)^2)/(N*h^2))
-  se.bc = sqrt((mean((M^2)) - mean(M)^2)/(N*h^2))
-
-  f.hat = c(f.hat.us, f.hat.bc, f.hat.bc)
-  se  = c(se.us, se.us, se.bc)
-  t  =  f.hat/se
-  pv = 2*pnorm(-abs(t))
-  ci = matrix(NA,nrow=3,ncol=2)
-  rownames(ci)=c("Conventional","Bias-Corrected","Robust")
-  colnames(ci)=c("Lower","Upper")
-  ci[1,] = c(f.hat[1] - quant*se[1], f.hat[1] + quant*se[1])
-  ci[2,] = c(f.hat[2] - quant*se[2], f.hat[2] + quant*se[2])
-  ci[3,] = c(f.hat[3] - quant*se[3], f.hat[3] + quant*se[3])
-    
-  #print("Estimation Completed.") 
-    coef=matrix(f.hat,3,1)
-    se  =matrix(se,3,1)
-    z   =matrix(t,3,1)
-    pv  =matrix(pv,3,1)
-    ci=ci
-
-  bws=matrix(c(h,b),1,2)
-  rownames(coef)=rownames(se)=rownames(se)=rownames(z)=rownames(pv)=c("Conventional","Bias-Corrected","Robust")
-  colnames(coef)="Coeff"
-  colnames(se)="Std. Err."
-  colnames(z)="z"
-  colnames(pv)="P>|z|"
-  colnames(bws)=c("left","right")
-  rownames(ci)=c("Conventional","Bias-Corrected","Robust")
-  colnames(ci)=c("CI Lower","CI Upper")
-    
-  tabl1.str=matrix(NA,3,1)
-  rownames(tabl1.str)=c("Number of Obs", "BW Type", "Kernel Type")
-  dimnames(tabl1.str) <-list(c("Number of Obs", "BW Type", "Kernel Type"), rep("", dim(tabl1.str)[2]))
-  tabl1.str[1,1]=N
-  tabl1.str[2,1]=bwselect
-  tabl1.str[3,1]=kernel_type
-  
-  tabl2.str=matrix(NA,4,1)
-  colnames(tabl2.str)=c("Left")
-  rownames(tabl2.str)=c("Number of Obs", "BW Loc Poly (h)","BW Bias (b)","rho (h/b)")
-  tabl2.str[1,]=formatC(c(N),digits=0, format="f")
-  tabl2.str[2,]=formatC(c(h),digits=4, format="f")
-  tabl2.str[3,]=formatC(c(b),digits=4, format="f")
-  tabl2.str[4,]=formatC(c(h/b),digits=4, format="f")
-  
-  tabl3.str=matrix("",2,6)
-  colnames(tabl3.str)=c("Coef","Std. Err.","z","P>|z|","CI Lower","CI Upper")
-  rownames(tabl3.str)=c("Conventional", "Robust")
-  tabl3.str[1,1]  =formatC(coef[1],digits=4, format="f")
-  tabl3.str[1,2]  =formatC(se[1],  digits=4, format="f")
-  tabl3.str[1,3]  =formatC(z[1],   digits=4, format="f")
-  tabl3.str[1,4]  =formatC(pv[1],  digits=4, format="f")
-  tabl3.str[1,5:6]=formatC(ci[1,], digits=4, format="f")
-  tabl3.str[2,4]  =formatC(pv[3],  digits=4, format="f")
-  tabl3.str[2,5:6]=formatC(ci[3,] ,digits=4, format="f")
-  
-  if (all==TRUE){
-    tabl3.str=formatC(cbind(coef,se,z,pv,ci),digits=4, format="f")                   
-    colnames(tabl3.str)=c("Coef","Std. Err.","z","P>|z|","CI Lower","CI Upper")
+  if (length(h)==1 & neval>1) {
+    h <- rep(h,neval)
+    b <- rep(b,neval)
+    rho   <- h/b
   }
 
-  out=list(tabl1.str=tabl1.str,tabl2.str=tabl2.str,tabl3.str=tabl3.str,coef=coef,bws=bws,se=se,z=z,pv=pv,ci=ci,h=h,b=b,rho=rho,N=N)
+  
+  Estimate<-matrix(NA,neval,8)
+  colnames(Estimate)<-c("eval","h","b","N","tau.us","tau.bc","se.us","se.rb")
+  
+  for (i in 1:neval) {
+    
+    
+    if (!is.null(bwcheck)) {
+      bw.min   <- sort(abs(x-eval[i]))[bwcheck]
+      h[i]     <- max(h[i], bw.min)
+      b[i]     <- max(b[i], bw.min)
+      rho[i]   <- h[i]/b[i]
+    }
+    
+    u   <- (x-eval[i])/h[i]
+    K.d <- kd.K.fun(u        , v=p,   r=deriv, kernel=kernel)
+    L.r <- kd.K.fun(rho[i]*u , v=p+2, r=p,     kernel=kernel)
+  
+    K     <- K.d$Kx
+    M     <- K - rho[i]^(1+p)*L.r$Kx*L.r$k.v
+    f.us  <- mean(K)/h[i]
+    f.bc  <- mean(M)/h[i]
+    se.us <- sqrt((mean((K^2)) - mean(K)^2)/(N*h[i]^2))
+    se.rb <- sqrt((mean((M^2)) - mean(M)^2)/(N*h[i]^2))
+    
+    eN = sum(M>0)
+    
+    Estimate[i,] <- c(eval[i], h[i], b[i], eN, f.us, f.bc, se.us, se.rb) 
+  }
+  out<-list(Estimate=Estimate, opt=list(p=p, kernel=kernel.type, n=N, neval=neval, bwselect=bwselect))
   out$call <- match.call()
   class(out) <- "kdrobust"
   return(out)
 }
 
-#kdrobust <- function(y,x, ...) UseMethod("kdrobust")
-
-#kdrobust.default <- function(y,x,  ...){
-#  est <- kdrobustEst(y,x, ...)
-#  est$call <- match.call()
-#  class(est) <- "kdrobust"
-#  est
-#}
-
 print.kdrobust <- function(x,...){
-  cat("Call:\n")
-  print(x$call)
-  cat("\nSummary:\n")
-  print(x$tabl1.str,quote=F)  
+  cat("Call: kdrobust\n\n")
+  
+  cat(paste("Sample size (n)                            =     ", x$opt$n,        "\n", sep=""))
+  cat(paste("Kernel order for point estimation (p)      =     ", x$opt$p,        "\n", sep=""))
+  cat(paste("Kernel function                            =     ", x$opt$kernel.type,   "\n", sep=""))
+  cat(paste("Bandwidth method                           =     ", x$opt$bwselect, "\n", sep=""))
   cat("\n")
-  print(x$tabl2.str,quote=F)
-  cat("\nEstimates:\n")
-  print(x$tabl3.str,quote=F)
+  
+# cat("Use summary(...) to show estimates.\n")
 }
 
 summary.kdrobust <- function(object,...) {
-  TAB <- cbind(Estimate    =object$coef,
-               "Std. Error"=object$se,
-               "z"         =object$z,
-               "Pr(>|z|)"  =object$pv,
-               "95% CI"    =object$ci)
-  res <- list(call=object$call, coefficients=TAB)
-  class(res) <- "summary.kdrobust"
-  res
+  x <- object
+  args <- list(...)
+  if (is.null(args[['alpha']])) { alpha <- 0.05 } else { alpha <- args[['alpha']] }
+  if (is.null(args[['sep']]))   { sep <- 5 } else { sep <- args[['sep']] }
+  
+  cat("Call: kdrobust\n\n")
+  
+  cat(paste("Sample size (n)                            =     ", x$opt$n,        "\n", sep=""))
+  cat(paste("Kernel order for point estimation (p)      =     ", x$opt$p,        "\n", sep=""))
+  cat(paste("Kernel function                            =     ", x$opt$kernel,   "\n", sep=""))
+  cat(paste("Bandwidth selection method                 =     ", x$opt$bwselect, "\n", sep=""))
+  cat("\n")
+  
+  ### compute CI
+  z <- qnorm(1 - alpha / 2)
+  CI_l <- x$Estimate[, "tau.bc"] - x$Estimate[, "se.rb"] * z;
+  CI_r <- x$Estimate[, "tau.bc"] + x$Estimate[, "se.rb"] * z;
+  
+  ### print output
+  cat(paste(rep("=", 14 + 10 + 8 + 10 + 10 + 25), collapse="")); cat("\n")
+  
+  cat(format(" ", width= 14 ))
+  cat(format(" ", width= 10 ))
+  cat(format(" ", width= 8  ))
+  cat(format("Point", width= 10, justify="right"))
+  cat(format("Std." , width= 10, justify="right"))
+  cat(format("Robust B.C.", width=25, justify="centre"))
+  cat("\n")
+  
+  
+  cat(format("eval"            , width=14, justify="right"))
+  cat(format("bw"              , width=10, justify="right"))
+  cat(format("Eff.n"           , width=8 , justify="right"))
+  cat(format("Est."            , width=10, justify="right"))
+  cat(format("Error"           , width=10, justify="right"))
+  cat(format(paste("[ ", floor((1-alpha)*100), "%", " C.I. ]", sep="")
+             , width=25, justify="centre"))
+  cat("\n")
+  
+  cat(paste(rep("=", 14 + 10 + 8 + 10 + 10 + 25), collapse="")); cat("\n")
+  
+  for (j in 1:nrow(x$Estimate)) {
+    cat(format(toString(j), width=4))
+    cat(format(sprintf("%3.3f", x$Estimate[j, "eval"]), width=10, justify="right"))
+    cat(format(sprintf("%3.3f", x$Estimate[j, "h"])  , width=10, justify="right"))
+    cat(format(sprintf("%3.0f", x$Estimate[j, "N"])  , width=8 , justify="right"))
+    cat(format(sprintf("%3.3f", x$Estimate[j, "tau.us"]) , width=10, justify="right"))
+    cat(format(paste(sprintf("%3.3f", x$Estimate[j, "se.us"]), sep=""), width=10, justify="right"))
+    cat(format(paste("[", sprintf("%3.3f", CI_l[j]), " , ", sep="")  , width=14, justify="right"))
+    cat(format(paste(sprintf("%3.3f", CI_r[j]), "]", sep=""), width=11, justify="left"))
+    cat("\n")
+    if (is.numeric(sep)) if (sep > 0) if (j %% sep == 0) {
+      cat(paste(rep("-", 14 + 10 + 8 + 10 + 10 + 25), collapse="")); cat("\n")
+    }
+  }
+  
+  cat(paste(rep("=", 14 + 10 + 8 + 10 + 10 + 25), collapse="")); cat("\n")
 }
-
-#print.summary.kdrobust <- function(x, ...){
-#  cat("Call:\n")
-#  print(x$call)
-#  cat("\n")
-#  printCoefmat(x$coef)
-#  printCoefmat(x$coefficients, P.values=TRUE, has.Pvalue=TRUE)
-#}

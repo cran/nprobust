@@ -1,62 +1,61 @@
 \name{kdbwselect}
 \alias{kdbwselect}
-\alias{print.kdbwselect}
-\alias{summary.kdbwselect}
-\title{Bandwidth Selection Procedures for Kernel Density Estimation}
+\title{Bandwidth Selection Procedures for Kernel Density Estimation and Inference}
 
 \description{
-\code{\link{kdbwselect}} implements bandwidth selectors for kernel density estimation and inference procedures developed in  Calonico, Cattaneo and Farrell (2016a).
+\code{\link{kdbwselect}} implements bandwidth selectors for kernel density point estimators and inference procedures developed in Calonico, Cattaneo and Farrell (2017a). It also implements other bandwidth selectors available in the literature. See Wand and Jones (1995) for background references.
 
-Companion commands are: \code{\link{kdrobust}} for point estimation and inference procedures.
+Companion commands are: \code{\link{kdrobust}} for kernel density point estimation and inference procedures.
 
-For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/rdpackages/}
+A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017b). For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/nppackages/}
 }
 \usage{
-kdbwselect(x, c, deriv = 0, p = 2, kernel = "epan", 
-bwselect = "mse", all = FALSE, subset = NULL)
+kdbwselect(x, eval = NULL, neval = NULL, rho = NULL, kernel = "epa", 
+bwselect = "mse-dpi", bwcheck=NULL, subset = NULL)
 }
 \arguments{
-  \item{x}{the data from which the estimate is to be computed.}
-  \item{c}{specifies the evaluation point in \code{x}.}
-  \item{p}{specifies the order of the kernel used to construct the point-estimator; default is \code{p = 2}.}
-  \item{deriv}{specifies the order of the derivative of the density function to be estimated. Default is \code{deriv=0}.}
-  \item{kernel}{is the kernel function used to construct the kernel density estimator(s). Options are \code{triangular} (default option), \code{epanechnikov} and \code{uniform}.}
-\item{bwselect}{specifies the bandwidth selection procedure to be used. Options are:
-
-\code{mse} MSE-optimal bandwidth selector for the kernel density estimator.
-
-\code{cer} CER-optimal bandwidth selector for the kernel density estimator.
-
-Note: MSE = Mean Square Error; CER = Coverage Error Rate.
-Default is \code{bwselect=mse}. For details on implementation see Calonico, Cattaneo and Farrell (2016a), and the companion software articles.}
-
-  \item{all}{if specified, \code{\link{kdbwselect}} reports all available bandwidth selection procedures.}
-  \item{subset}{an optional vector specifying a subset of observations to be used.}
-}
-
-\value{
-  \item{bws}{matrix containing the estimated bandwidths for each selected procedure.}
-  \item{bwselect}{bandwidth selection procedure employed.}
-  \item{kernel}{kernel function used to construct the kernel density estimator(s).}
-  \item{p}{order of the kernel used to construct the point-estimator.}
+  \item{x}{independent variable.}
   
+  \item{eval}{vector of evaluation point(s).}
+  
+  \item{neval}{number of quantile-spaced evaluation points on support of \code{x}.}
+  
+  \item{rho}{\code{rho}=\code{h}/\code{b}. Default is \code{rho = 1} if \code{h} is specified but \code{b} is not.}
+
+  \item{kernel}{kernel function used to construct local polynomial estimators. Options are \code{epa} for the epanechnikov kernel, \code{tri} for the triangular kernel and \code{uni} for the uniform kernel. Default is \code{kernel = epa}.}
+  
+  \item{bwselect}{bandwidth selection procedure to be used via \code{\link{kdbwselect}}. By default it computes both \code{h} and \code{b}, unless \code{rho} is specified, in which case it only computes \code{h} and sets \code{b=h/rho}. Options are:
+  
+    \code{mse-dpi} second-generation DPI implemenation of MSE-optimal bandwidth. Default option.
+	
+	\code{imse-dpi} second-generation DPI implemenation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
+	
+	\code{imse-rot} ROT implemenation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
+	
+	\code{ce-dpi} second generation DPI implementation of CE-optimal bandwidth.
+	
+	\code{ce-rot} ROT implementation of CE-optimal bandwidth.
+	
+	\code{all} reports all available bandwidth selection procedures.
+	
+	Note: MSE = Mean Square Error; IMSE = Integrated Mean Squared Error; CE = Coverage Error; DPI = Direct Plug-in; ROT = Rule-of-Thumb. For details on implementation see Calonico, Cattaneo and Farrell (2017b).}
+	
+  \item{bwcheck}{if a positive integer provided, then the selected bandwidth is enlarged so that at least \code{bwcheck} effective observations are available at each evaluation point. Default is \code{bwcheck = NULL}.}
+  
+  \item{subset}{optional rule specifying a subset of observations to be used.}
 }
-
+\value{
+\item{Estimate}{A matrix containing \code{eval} (grid points), \code{h} and \code{b} (bandwidths).}
+\item{opt}{A list containing options passed to the function.}
+}
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2016. On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference. Working Paper.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2016_JASA.pdf}.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017a. \href{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2017_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference}. Journal of the American Statistical Association, forthcoming.
 
-Calonico, S., M. D. Cattaneo, M. H. Farrell, and R. Titiunik. 2016b. rdrobust: Software for Regression Discontinuity Designs. Working Paper.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell-Titiunik_2016_Stata.pdf}.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017b. \href{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Working Paper, University of Michigan.
 
-Calonico, S., M. D. Cattaneo, and R. Titiunik. 2014a. Robust Nonparametric Confidence Intervals for Regression-Discontinuity Designs. Econometrica 82(6): 2295-2326.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Titiunik_2014_ECMA.pdf}.
+Fan, J., and Gijbels, I. 1996. Local polynomial modelling and its applications, London: Chapman and Hall.
 
-Calonico, S., M. D. Cattaneo, and R. Titiunik. 2014b. Robust Data-Driven Inference in the Regression-Discontinuity Design. Stata Journal 14(4): 909-946.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Titiunik_2014_Stata.pdf}.
-
-Calonico, S., M. D. Cattaneo, and R. Titiunik. 2015b. rdrobust: An R Package for Robust Nonparametric Inference in Regression-Discontinuity Designs. R Journal 7(1): 38-51.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Titiunik_2015_R.pdf}.
+Wand, M., and Jones, M. 1995. Kernel Smoothing, Florida: Chapman & Hall/CRC.
 }
 \author{
 Sebastian Calonico, University of Miami, Coral Gables, FL.  \email{scalonico@bus.miami.edu}.
@@ -65,10 +64,10 @@ Matias D. Cattaneo, University of Michigan, Ann Arbor, MI.  \email{cattaneo@umic
 
 Max H. Farrell, University of Chicago, Chicago, IL. \email{max.farrell@chicagobooth.edu}.
 }
-
 \examples{
-x<-runif(1000,-1,1)
-kdbwselect(x, c=0)
+x   <- rnorm(500)
+est <- kdbwselect(x)
+summary(est)
 }
 \seealso{
   \code{\link{kdrobust}}

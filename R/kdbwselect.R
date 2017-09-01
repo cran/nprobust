@@ -1,94 +1,273 @@
 ### version 0.0.1  06Nov2016
+### version 0.0.2  10Mar2017
 
-kdbwselect = function(x, c, deriv=0, p=2, kernel="epan", bwselect="mse", all=FALSE, subset = NULL){
+kdbwselect <- function(x, eval=NULL, neval=NULL, rho=NULL, kernel="epa", 
+                       bwselect="mse-dpi", bwcheck=NULL, subset = NULL){
+  
+  p <- 2
+  deriv <- 0
+  kernel   <- tolower(kernel)
+  bwselect <- tolower(bwselect)
   
   if (!is.null(subset)) x <- x[subset]
   na.ok <- complete.cases(x) 
-  N=length(x)
+  x <- x[na.ok]
 
-  if (kernel=="epanechnikov" | kernel=="epa") {
-    kernel_type = "Epanechnikov"
-    C=2.34
-  }  else if (kernel=="uniform" | kernel=="uni") {
-    kernel_type = "Uniform"
-    C=1.843
-  }   else  {
-    kernel_type = "Triangular"
-    C=2.576
+  x.min <- min(x);  x.max <- max(x)
+  N <- length(x)
+
+  if (is.null(eval)) {
+    if (is.null(neval)) {
+      #eval <- unique(x)
+      qseq <- seq(0,1,1/(20+1))
+      eval <- quantile(x, qseq[2:(length(qseq)-1)])
+    }
+    else {
+      #eval <- seq(x.min,x.max,length.out=neval)
+      qseq <- seq(0,1,1/(neval+1))
+      eval <- quantile(x, qseq[2:(length(qseq)-1)])
+    }
+  }
+  neval <- length(eval)
+
+
+  kernel.type <- "Gaussian"  
+  C.h<-1.06
+  C.b<-1
+  if (kernel=="epa") {
+    kernel.type <- "Epanechnikov"
+    C.h<-2.34
+    C.b<-3.49
+  }
+  if (kernel=="uni") {
+    kernel.type <- "Uniform"
+    C.h<-1.06
+    C.b<-1
   }
   
-  h.mse.rot = sd(x)*C*N^(-1/(2*p+1))
-  h.cer.rot = h.mse.rot*N^(-(p-2)/((1+2*p)*(1+p+2)))
-  b.mse.rot=h.mse.rot
-  if (bwselect=="dpi") h.cer.dpi = h.cer.den(x,c,h.mse.rot)
-                                                                              
-  if (all=="FALSE"){
-    results = matrix(NA,1,2)
-    colnames(results)=c("h","b")
-    rownames(results)=bwselect
-    if  (bwselect=="mse" | bwselect=="") results[1,] = c(h.mse.rot, b.mse.rot)
-    if  (bwselect=="cer") results[1,] = c(h.cer.dpi,  h.cer.dpi)
+  #C.fun <- function(v,r) {
+  #  R.v <- kd.K.fun(1, v<-v, r<-r, kernel<-"gau")$R.v
+  #  k.v <- kd.K.fun(1, v<-v, r<-0, kernel<-"gau")$k.v
+  #  C <- 2*((sqrt(pi)*(1+2*d)*factorial(p+d)*R.v)/(2*p*k.v^2*factorial(2*p+2*d)))^(1/(2*p+2*d+1))
+  #  return(C)
+  #}
+
+  
+  bws           <- matrix(NA,neval,2)
+  colnames(bws) <- c("h","b")
+  bws.imse <- NULL  
+  
+  if (bwselect=="all") {
+    bws           <- matrix(NA,neval,6)
+    colnames(bws) <- c("h.mse.dpi","b.mse.dpi",  "h.ce.dpi","b.ce.dpi", "h.ce.rot","b.ce.rot")
+    bws.imse      <- matrix(NA,2,2)
   }
 
-  if (all=="TRUE"){
-    bwselect="All"
-    results = matrix(NA,2,2)
-    colnames(results)=c("h","b")
-    rownames(results)=c("mse","cer") 
-    results[1,] =c(h.mse.rot, b.mse.rot)
-    results[2,] =c(h.cer.dpi, h.cer.dpi)
+  h.imse.rot <- sd(x)*C.h*N^(-1/(1+2*p))
+  b.imse.rot <- sd(x)*C.b*N^(-1/(1+2*(p+2)+2*p))
+  
+  if (!is.null(bwcheck)) {
+    bw.min     <- sort(abs(x-eval[i]))[bwcheck]
+    h.imse.rot <- max(h.imse.rot, bw.min)
+    b.imse.rot <- max(b.imse.rot, bw.min)
   }
   
-  tabl1.str=matrix(NA,3,1)
-  dimnames(tabl1.str) <-list(c("BW Selector", "Number of Obs", "Kernel Type"), rep("", dim(tabl1.str)[2]))
-  tabl1.str[1,1]=bwselect
-  tabl1.str[2,1]=N
-  tabl1.str[3,1]=kernel_type
+  if (bwselect=="imse-rot") {
+    neval = eval = 1
+    bws <- matrix(NA,neval,2)
+    bws[1,]   <- c(h.imse.rot,  b.imse.rot)
+  }
   
-  tabl2.str=matrix(NA,3,1)
-  dimnames(tabl2.str) <-list(c("BW Selector", "Number of Obs", "Kernel Type"), rep("", dim(tabl2.str)[2]))
-  tabl2.str[1,1]=bwselect
-  tabl2.str[2,1]=N
-  tabl2.str[3,1]=kernel_type
+  if  (bwselect=="all"  | bwselect=="mse-dpi" | bwselect=="ce-dpi" | bwselect=="ce-rot" | bwselect=="imse-dpi") {
   
+  B.h=V.h=0
+    
+  for (i in 1:neval) {
   
-  bws=results
-  out = list(tabl1.str=tabl1.str,tabl2.str=tabl2.str,bws=bws,bws,bwselect=bwselect,kernel=kernel_type)
-  out$call <- match.call()
+    #bws[i,1:2] <- c(h.imse.rot, b.imse.rot)
+    #q.rot <- sd(x)*C.b*N^(-1/(1+2*(p+4)+2*(p+2)))
+    
+    #V = (mean((K^2)) - mean(K)^2)/(N*h.rot^2)
+    #B = mean(rho^(1+p)*M)/h.rot
+    
+    #K.q = kd.K.fun((x-eval[i])/q.rot, v=p+4, r=p+2,   kernel=kernel)    
+    #f.q.rot = mean(K.q$Kx)/q.rot^(1+2*p)
+    #f.q.rot <- kd.K.fun(eval[i], v=2, r=4, kernel="gau")$Kx
+    
+    #V.b <- f.h.rot*kd.K.fun(1, v=p+2, r=p, kernel=kernel)$R.v
+    #B.b <- f.q.rot*kd.K.fun(1, v=p+2, r=p, kernel=kernel)$k.v
+    #b.mse.dpi <- bw.fun(V.b, B.b, N, v=p+2, r=p)
+    
+    K.b <- kd.K.fun((x-eval[i])/b.imse.rot, v=p+2, r=p,     kernel=kernel)    
+    K.h <- kd.K.fun((x-eval[i])/h.imse.rot, v=p,   r=deriv, kernel=kernel)
+    f.b <- mean(K.b$Kx)/b.imse.rot^(1+p)
+    f.h.rot <- mean(K.h$Kx)/h.imse.rot    
+    B.h[i]  <- f.b*K.h$k.v
+    V.h[i]  <- f.h.rot*K.h$R.v
+    h.mse.dpi <- kd.bw.fun(V.h[i], B.h[i], N, v=p, r=deriv)
+    
+    #f.h.rot=dnorm(eval[i])
+    #f.b.rot=(eval[i]^2-1)*dnorm(eval[i])
+    #V.h = (f.h.rot*K.h$v.k)/(N*h.rot^(1+2*deriv))
+    #B.h = (f.b.rot*K.h$m.k)*b.rot^p
+    #u = (x-eval[i])/h.rot
+    #K.d = kd.K.fun(u     , r=p,   d=deriv, kernel=kernel)
+    #L.r = kd.K.fun(rho[i]*u , r=p+2, d=p,     kernel=kernel)
+    #K = K.d$k.x
+    #M = rho[i]^(1+p)*L.r$k.x*L.r$m.k
+    #f.hat.us = mean(K)/h.rot
+    #bias = mean(M)/h.rot
+    #var.us = (mean((K^2)) - mean(K)^2)/(N*h.rot^2)
+    #bw.fun(var.us, f.hat.bc, r=p, d=deriv)
+    #(var.us/(2*p*N*bias^2))^1/(1+2*p)
+    b.mse.dpi = b.imse.rot
+    
+    if (!is.null(bwcheck)) {
+      h.mse.dpi <- max(h.mse.dpi, bw.min)
+      b.mse.dpi <- max(b.mse.dpi, bw.min)
+    }
+    
+    bws[i,1:2] <- c(h.mse.dpi,    b.mse.dpi)
+    
+    if (bwselect=="ce-rot" | bwselect=="all") {
+      h.ce.rot <- h.mse.dpi*N^(-(p-2)/((1+2*p)*(1+p+2)))
+      b.ce.rot <- b.mse.dpi*N^(-(p-2)/((1+2*p)*(1+p+2)))
+      
+      if (!is.null(bwcheck)) {
+        h.ce.rot <- max(h.ce.rot, bw.min)
+        b.ce.rot <- max(b.ce.rot, bw.min)
+      }
+      
+      bws[i,1:2] <- c(h.ce.rot, b.ce.rot)
+    }
+    
+    if (bwselect=="ce-dpi"| bwselect=="all") {
+      h.ce.dpi <- kd.cer.fun(x, eval[i], h.mse.dpi, h.mse.dpi, p, kernel)
+      b.ce.dpi <- b.mse.dpi
+      
+      if (!is.null(bwcheck)) {
+        h.ce.dpi <- max(h.ce.dpi, bw.min)
+        b.ce.dpi <- max(b.ce.dpi, bw.min)
+      }
+      
+      bws[i,1:2] <- c(h.ce.dpi,  b.ce.dpi)
+    }
+    
+    if(bwselect=="all") bws[i,1:6] <- c(h.mse.dpi,b.mse.dpi, h.ce.dpi,b.ce.dpi, h.ce.rot,b.ce.rot)
+  }
+  
+  h.imse.dpi <- kd.bw.fun(mean(V.h), mean(B.h), N, v=p, r=deriv)
+  
+  if (!is.null(bwcheck)) {
+    h.imse.dpi <- max(h.imse.dpi, bw.min)
+  }
+  
+  if  (bwselect=="all") {
+    bws.imse[,1] <- c(h.imse.dpi,  b.imse.rot)
+    bws.imse[,2] <- c(h.imse.rot,  b.imse.rot)
+  }
+  
+  if  (bwselect=="imse-dpi") { 
+    eval=neval=1
+    bws <- matrix(NA,neval,2)
+    bws[1,]   <- c(h.imse.dpi,  b.imse.rot)
+  }
+  
+  }
+  
+  bws <- cbind(eval,bws)
+  out <- list(bws=bws, bws.imse = bws.imse, opt=list(p=p, n=N, neval=neval, kernel=kernel.type, bwselect=bwselect))
+  out$call   <- match.call()
   class(out) <- "kdbwselect"
   return(out)
 }
 
-
-#kdbwselect <- function(y,x, ...) UseMethod("kdbwselect")
-
-#kdbwselect.default <- function(y,x, ...){
-#  est <- kdbwselectEst(y,x, ...)
-#  est$call <- match.call()
-#  class(est) <- "kdbwselect"
-#  est
-#}
-
 print.kdbwselect <- function(x,...){
-  cat("Call:\n")
-  print(x$call)
-  print(x$tabl1.str,quote=F)  
+  cat("Call: kdbwselect\n\n")
+  
+  cat(paste("Sample size (n)                         =    ", x$opt$n,        "\n", sep=""))
+#  cat(paste("Kernel order for point estimation (p)   =    ", x$opt$p,        "\n", sep=""))
+  cat(paste("Kernel function                         =    ", x$opt$kernel,   "\n", sep=""))
+  cat(paste("Bandwidth method                        =    ", x$opt$bwselect, "\n", sep=""))
   cat("\n")
-  print(x$tabl2.str,quote=F) 
-  cat("\n")
-  print(x$bws)  
+  
+  #cat("Use summary(...) to show bandwidths.\n")
 }
 
 summary.kdbwselect <- function(object,...) {
-  TAB <- object$bws
-  res <- list(call=object$call, coefficients=TAB)
-  class(res) <- "summary.kdbwselect"
-  res
-}
+  x <- object
+  args <- list(...)
+  if (is.null(args[['sep']]))   { sep <- 5 } else { sep <- args[['sep']] }
+  
+  cat("Call: kdbwselect\n\n")
+  
+  cat(paste("Sample size (n)                             =    ", x$opt$n,        "\n", sep=""))
+#  cat(paste("Polynomial order for point estimation (p)   =    ", x$opt$p,        "\n", sep=""))
+  cat(paste("Kernel function                             =    ", x$opt$kernel,   "\n", sep=""))
+  cat(paste("Bandwidth selection method                  =    ", x$opt$bwselect, "\n", sep=""))
+  cat("\n")
 
-#print.summary.kdbwselect <- function(x, ...){
-#  cat("Call:\n")
-#  print(x$call)
-#  cat("\n")
-#  printCoefmat(x$coefficients, P.values=FALSE, has.Pvalue=FALSE)
-#}
+  if (x$opt$bwselect=="all") {
+    col1.names = c("","", "MSE-DPI", "","CE-DPI","","CE-ROT")
+    col2.names = rep(c("h", "b"),3)
+  } else {
+    col1.names = c("")
+    col2.names = c("h", "b")
+  }
+  
+  ### print output
+  if (x$opt$bwselect=="imse-dpi" | x$opt$bwselect=="imse-rot") {
+    cat(paste(rep("=", 15 + 8), collapse="")); cat("\n")
+  } else {
+    cat(paste(rep("=", 15 + 8*ncol(x$bws)), collapse="")); cat("\n")
+  }
+  if (x$opt$bwselect=="all") {
+    cat(format(col1.names  , width=8, justify="right"))
+    cat("\n")
+  }
+  if (x$opt$bwselect!="imse-dpi" & x$opt$bwselect!="imse-rot") cat(format("eval", width=10, justify="right"))
+  cat(format(col2.names            , width=8, justify="right"))
+  cat("\n")
+  
+  if (x$opt$bwselect=="imse-dpi" | x$opt$bwselect=="imse-rot") {
+    cat(paste(rep("=", 15 + 8), collapse="")); cat("\n")
+  } else {
+    cat(paste(rep("=", 15 + 8*ncol(x$bws)), collapse="")); cat("\n")
+  }
+  
+  if (x$opt$bwselect=="imse-dpi" | x$opt$bwselect=="imse-rot") {
+    cat(format(sprintf("%3.3f", x$bws[2:3])  , width=9, justify="right"))
+    cat("\n")
+  } else {
+    for (j in 1:nrow(x$bws)) {
+      cat(format(toString(j), width=4))
+      cat(format(sprintf("%3.3f", x$bws[j, "eval"]), width=8, justify="right"))
+      cat(format(sprintf("%3.3f", x$bws[j, 2:ncol(x$bws)])  , width=8, justify="right"))
+      cat("\n")
+      if (is.numeric(sep)) if (sep > 0) if (j %% sep == 0) {
+        cat(paste(rep("-", 15 + 8*ncol(x$bws)), collapse="")); cat("\n")
+      }
+    }
+  }
+  
+  if (x$opt$bwselect=="imse-dpi" | x$opt$bwselect=="imse-rot") {
+    cat(paste(rep("=", 15 + 8), collapse="")); cat("\n")
+  } else {
+    cat(paste(rep("=", 15 + 8*ncol(x$bws)), collapse="")); cat("\n")   
+  }
+  
+  if (x$opt$bwselect=="all") {
+    cat("\n")
+    cat(paste(rep("=", 15 + 10 + 10), collapse="")); cat("\n")
+    cat(format(c("","IMSE-DPI","", "IMSE-ROT") , width=8, justify="right"))
+    cat("\n")
+    cat(format(c("h", "b", "h", "b")            , width=8, justify="right"))
+    cat("\n")
+    cat(paste(rep("=", 15 + 10 + 10), collapse="")); cat("\n")
+    cat(format(sprintf("%3.3f", x$bws.imse)  , width=8, justify="right"))
+    cat("\n")
+    cat(paste(rep("=", 15 + 10 + 10), collapse="")); cat("\n")
+    cat("\n")
+  }
+  
+}

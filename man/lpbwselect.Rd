@@ -1,84 +1,90 @@
 \name{lpbwselect}
 \alias{lpbwselect}
-\alias{print.lpbwselect}
-\alias{summary.lpbwselect}
-\title{Bandwidth Selection Procedures for Local Polynomial Regression Estimators}
+\title{Bandwidth Selection Procedures for Local Polynomial Regression Estimation and Inference}
 
 \description{
-\code{\link{lpbwselect}} implements bandwidth selectors for local polynomial regression point estimators and inference procedures developed in  Calonico, Cattaneo and Farrell (2016a).
+\code{\link{lpbwselect}} implements bandwidth selectors for local polynomial regression point estimators and inference procedures developed in Calonico, Cattaneo and Farrell (2017a). It also implements other bandwidth selectors available in the literature. See Wand and Jones (1995) and Fan and Gijbels (1996) for background references.
 
-Companion commands are: \code{\link{lprobust}} for point estimation and inference procedures.
+Companion commands: \code{\link{lprobust}} for local polynomial point estimation and inference procedures.
 
-For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/rdpackages/}
+A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017b). For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/nppackages/}
 }
 \usage{
-lpbwselect(y, x, c, p = 1, q = 2, 
-deriv = 0, kernel = "epa", bwselect = "mse", scaleregul = 1, 
-vce = "nn", nnmatch = 3, all = FALSE, subset = NULL)
+lpbwselect(y, x, eval = NULL, neval = NULL, p = NULL, deriv = NULL,
+rho = NULL, kernel = "epa", bwselect = "mse-dpi", 
+bwcheck = NULL, bwregul = 1, imsegrid = 30, vce = "nn", nnmatch = 3, 
+interior = FALSE, subset = NULL)
 }
 \arguments{
-  \item{y}{is the dependent variable.}
-  \item{x}{is the independent variable).}
-    \item{c}{specifies the evaluation point in \code{x}.}
-  \item{p}{specifies the order of the local-polynomial used to construct the point-estimator; default is \code{p = 1} (local linear regression).}
-  \item{q}{specifies the order of the local-polynomial used to construct the bias-correction; default is \code{q = 2} (local quadratic regression).}
-  \item{deriv}{specifies the order of the derivative of the regression functions to be estimated. Default is \code{deriv=0}.}
-  \item{kernel}{is the kernel function used to construct the local-polynomial estimator(s). Options are \code{triangular} (default option), \code{epanechnikov} and \code{uniform}.}
-\item{bwselect}{specifies the bandwidth selection procedure to be used. Options are:
-
-\code{mse} MSE-optimal bandwidth selector for the local polynomial regression estimator.
-
-\code{cer} CER-optimal bandwidth selector for the local polynomial regression estimator.
-
-Note: MSE = Mean Square Error; CER = Coverage Error Rate.
-Default is \code{bwselect=mse}. For details on implementation see Calonico, Cattaneo and Farrell (2016a), and the companion software articles.}
-  \item{scaleregul}{specifies scaling factor for the regularization term added to the denominator of the bandwidth selectors. Setting \code{scaleregul = 0} removes the regularization term from the bandwidth selectors; default is \code{scaleregul = 1}.}
-  \item{vce}{specifies the procedure used to compute the variance-covariance matrix estimator.
-Options are:
-
-\code{nn} for heteroskedasticity-robust nearest neighbor variance estimator with \code{nnmatch} the (minimum) number of neighbors to be used.
-
-\code{hc0} for heteroskedasticity-robust plug-in residuals variance estimator without weights.
-
-\code{hc1} for heteroskedasticity-robust plug-in residuals variance estimator with \code{hc1} weights.
-
-\code{hc2} for heteroskedasticity-robust plug-in residuals variance estimator with \code{hc2} weights.
-
-\code{hc3} for heteroskedasticity-robust plug-in residuals variance estimator with \code{hc3} weights.
-
-Default is \code{vce=nn}.}
+  \item{y}{dependent variable.}
   
-    \item{nnmatch}{to be combined with for \code{vce=nn} for heteroskedasticity-robust nearest neighbor variance estimator with \code{nnmatch} indicating the minimum number of neighbors to be used. Default is \code{nnmatch=3}}
-  \item{all}{if specified, \code{\link{lpbwselect}} reports all available bandwidth selection procedures.}
-  \item{subset}{an optional vector specifying a subset of observations to be used.}
-}
+  \item{x}{independent variable.}
+  
+  \item{eval}{vector of evaluation point(s).}
+  
+  \item{neval}{number of quantile-spaced evaluation points on support of \code{x}.}
+  
+  \item{p}{polynomial order used to construct point estimator; default is \code{p = 1} (local linear regression).}
+  
+  \item{deriv}{derivative order of the regression function to be estimated. Default is \code{deriv=0} (regression function).}
+  
+  \item{rho}{\code{rho}=\code{h}/\code{b}. Default is \code{rho = 1} if \code{h} is specified but \code{b} is not.}
+  
+  \item{kernel}{kernel function used to construct local polynomial estimators. Options are \code{epa} for the epanechnikov kernel, \code{tri} for the triangular kernel and \code{uni} for the uniform kernel. Default is \code{kernel = epa}.}
+  
+  \item{bwselect}{bandwidth selection procedure to be used via \code{\link{lpbwselect}}. By default it computes both \code{h} and \code{b}, unless \code{rho} is specified, in which case it only computes \code{h} and sets \code{b=h/rho}. Options are:
+  
+    \code{mse-dpi} second-generation DPI implemenation of MSE-optimal bandwidth. Default option.
+	
+	\code{mse-rot} ROT implemenation of MSE-optimal bandwidth.
+	
+	\code{imse-dpi} second-generation DPI implemenation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
+	
+	\code{imse-rot} ROT implemenation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
+	
+	\code{ce-dpi} second generation DPI implementation of CE-optimal bandwidth.
+	
+	\code{ce-rot} ROT implementation of CE-optimal bandwidth.
+	
+	\code{all} reports all available bandwidth selection procedures.
+	
+	Note: MSE = Mean Square Error; IMSE = Integrated Mean Squared Error; CE = Coverage Error; DPI = Direct Plug-in; ROT = Rule-of-Thumb. For details on implementation see Calonico, Cattaneo and Farrell (2017b).}
+	
+  \item{bwcheck}{if a positive integer provided, then the selected bandwidth is enlarged so that at least \code{bwcheck} effective observations are available at each evaluation point. Default is \code{bwcheck = NULL}.}
+  
+  \item{bwregul}{specifies scaling factor for the regularization term added to the denominator of bandwidth selectors. Setting \code{bwregul = 0} removes the regularization term from the bandwidth selectors. Default is \code{bwregul = 1}.}
+  \item{imsegrid}{number of evaluations points used to compute the IMSE bandwidth selector. Default is \code{imsegrid = 30}.}
+  \item{vce}{procedure used to compute the variance-covariance matrix estimator. Options are:
+  
+    \code{nn} heteroskedasticity-robust nearest neighbor variance estimator with \code{nnmatch} the (minimum) number of neighbors to be used. Default choice.
+	
+	\code{hc0} heteroskedasticity-robust plug-in residuals variance estimator without weights.
+	
+	\code{hc1} heteroskedasticity-robust plug-in residuals variance estimator with \code{hc1} weights.
+	
+	\code{hc2} heteroskedasticity-robust plug-in residuals variance estimator with \code{hc2} weights.
+	
+	\code{hc3} heteroskedasticity-robust plug-in residuals variance estimator with \code{hc3} weights.}
 
+  \item{nnmatch}{to be combined with for \code{vce=nn} for heteroskedasticity-robust nearest neighbor variance estimator with \code{nnmatch} indicating the minimum number of neighbors to be used. Default is \code{nnmatch=3}}.
+  
+  \item{interior}{if TRUE, all evaluation points are assumed to be interior points. This option affects only data-driven bandwith selection via \code{\link{lpbwselect}}. Default is \code{interior = FALSE}.}
+  
+  \item{subset}{optional rule specifying a subset of observations to be used.}
+}
 \value{
-  \item{bws}{matrix containing the estimated bandwidths for each selected procedure.}
-  \item{bwselect}{bandwidth selection procedure employed.}
-  \item{kernel}{kernel function used to construct the local-polynomial estimator(s).}
-  \item{p}{order of the local-polynomial used to construct the point-estimator.}
-  \item{q}{order of the local-polynomial used to construct the bias-correction estimator.}
+\item{Estimate}{A matrix containing \code{grid} (grid points), \code{h} and \code{b} (bandwidths), \code{N}
+  (sample size)}
+\item{opt}{A list containing options passed to the function.}
 }
-
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2016. On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference. Working Paper.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2016_JASA.pdf}.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017a. \href{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2017_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference.} Journal of the American Statistical Association, forthcoming.
 
-Calonico, S., M. D. Cattaneo, M. H. Farrell, and R. Titiunik. 2016a. Regression Discontinuity Designs using Covariates. Working Paper.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell-Titiunik_2016_wp.pdf}.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017b. \href{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper.
 
-Calonico, S., M. D. Cattaneo, M. H. Farrell, and R. Titiunik. 2016b. rdrobust: Software for Regression Discontinuity Designs. Working Paper.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell-Titiunik_2016_Stata.pdf}.
+Fan, J., and Gijbels, I. 1996. Local polynomial modelling and its applications, London: Chapman and Hall.
 
-Calonico, S., M. D. Cattaneo, and R. Titiunik. 2014a. Robust Nonparametric Confidence Intervals for Regression-Discontinuity Designs. Econometrica 82(6): 2295-2326.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Titiunik_2014_ECMA.pdf}.
-
-Calonico, S., M. D. Cattaneo, and R. Titiunik. 2014b. Robust Data-Driven Inference in the Regression-Discontinuity Design. Stata Journal 14(4): 909-946.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Titiunik_2014_Stata.pdf}.
-
-Calonico, S., M. D. Cattaneo, and R. Titiunik. 2015b. rdrobust: An R Package for Robust Nonparametric Inference in Regression-Discontinuity Designs. R Journal 7(1): 38-51.
-\url{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Titiunik_2015_R.pdf}.
+Wand, M., and Jones, M. 1995. Kernel Smoothing, Florida: Chapman & Hall/CRC.
 }
 \author{
 Sebastian Calonico, University of Miami, Coral Gables, FL.  \email{scalonico@bus.miami.edu}.
@@ -87,11 +93,11 @@ Matias D. Cattaneo, University of Michigan, Ann Arbor, MI.  \email{cattaneo@umic
 
 Max H. Farrell, University of Chicago, Chicago, IL. \email{max.farrell@chicagobooth.edu}.
 }
-
 \examples{
-x<-runif(1000,-1,1)
-y<-5+3*x+rnorm(1000)
-lpbwselect(y,x, c=0)
+x   <- runif(500)
+y   <- sin(4*x) + rnorm(500)
+est <- lpbwselect(y,x)
+summary(est)
 }
 \seealso{
   \code{\link{lprobust}}
