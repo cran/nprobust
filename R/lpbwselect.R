@@ -25,13 +25,15 @@ lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, rho=NULL,
   if (is.null(eval)) {
     if (is.null(neval)) {
       #eval <- unique(x)
-      qseq <- seq(0,1,1/(20+1))
-      eval <- quantile(x, qseq[2:(length(qseq)-1)])
+      #qseq <- seq(0,1,1/(20+1))
+      #eval <- quantile(x, qseq[2:(length(qseq)-1)])
+      eval <- seq(x.min, x.max, length.out=30)
     }
     else {
       #eval <- seq(x.min,x.max,length.out=neval)
-      qseq <- seq(0,1,1/(neval+1))
-      eval <- quantile(x, qseq[2:(length(qseq)-1)])
+      #qseq <- seq(0,1,1/(neval+1))
+      #eval <- quantile(x, qseq[2:(length(qseq)-1)])
+      eval <- seq(x.min, x.max, length.out=neval)
     }
   }
   neval <- length(eval)

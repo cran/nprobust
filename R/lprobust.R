@@ -23,19 +23,18 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
   x.max <- max(x); x.min <- min(x)
   N <- length(x)
   
-  #if (is.null(eval))   eval <- unique(quantile(x,seq(0.05,0.95,0.05)))
-  #if (is.null(eval))   eval <- quantile(x,seq(0.05,0.95,0.05))
-  
   if (is.null(eval)) {
     if (is.null(neval)) {
       #eval <- unique(x)
-      qseq <- seq(0,1,1/(20+1))
-      eval <- quantile(x, qseq[2:(length(qseq)-1)])
+      #qseq <- seq(0,1,1/(20+1))
+      #eval <- quantile(x, qseq[2:(length(qseq)-1)])
+      eval <- seq(x.min, x.max, length.out=30)
     }
     else {
       #eval <- seq(x.min,x.max,length.out=neval)
-      qseq <- seq(0,1,1/(neval+1))
-      eval <- quantile(x, qseq[2:(length(qseq)-1)])
+      #qseq <- seq(0,1,1/(neval+1))
+      #eval <- quantile(x, qseq[2:(length(qseq)-1)])
+      eval <- seq(x.min, x.max, length.out=neval)
     }
   }
   neval <- length(eval)

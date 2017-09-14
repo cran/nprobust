@@ -7,7 +7,7 @@
 
 Companion commands are: \code{\link{kdrobust}} for kernel density point estimation and inference procedures.
 
-A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017b). For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/nppackages/}
+A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017b). For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/nppackages/}.
 }
 \usage{
 kdbwselect(x, eval = NULL, neval = NULL, rho = NULL, kernel = "epa", 
@@ -16,9 +16,9 @@ bwselect = "mse-dpi", bwcheck=NULL, subset = NULL)
 \arguments{
   \item{x}{independent variable.}
   
-  \item{eval}{vector of evaluation point(s).}
+  \item{eval}{vector of evaluation point(s). By default it uses 30 equally spaced points over to support of \code{x}.}
   
-  \item{neval}{number of quantile-spaced evaluation points on support of \code{x}.}
+  \item{neval}{number of quantile-spaced evaluation points on support of \code{x}. Default is \code{neval=30}.}
   
   \item{rho}{\code{rho}=\code{h}/\code{b}. Default is \code{rho = 1} if \code{h} is specified but \code{b} is not.}
 
@@ -26,11 +26,11 @@ bwselect = "mse-dpi", bwcheck=NULL, subset = NULL)
   
   \item{bwselect}{bandwidth selection procedure to be used via \code{\link{kdbwselect}}. By default it computes both \code{h} and \code{b}, unless \code{rho} is specified, in which case it only computes \code{h} and sets \code{b=h/rho}. Options are:
   
-    \code{mse-dpi} second-generation DPI implemenation of MSE-optimal bandwidth. Default option.
+    \code{mse-dpi} second-generation DPI implementation of MSE-optimal bandwidth. Default option.
 	
-	\code{imse-dpi} second-generation DPI implemenation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
+	\code{imse-dpi} second-generation DPI implementation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
 	
-	\code{imse-rot} ROT implemenation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
+	\code{imse-rot} ROT implementation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
 	
 	\code{ce-dpi} second generation DPI implementation of CE-optimal bandwidth.
 	
@@ -40,7 +40,7 @@ bwselect = "mse-dpi", bwcheck=NULL, subset = NULL)
 	
 	Note: MSE = Mean Square Error; IMSE = Integrated Mean Squared Error; CE = Coverage Error; DPI = Direct Plug-in; ROT = Rule-of-Thumb. For details on implementation see Calonico, Cattaneo and Farrell (2017b).}
 	
-  \item{bwcheck}{if a positive integer provided, then the selected bandwidth is enlarged so that at least \code{bwcheck} effective observations are available at each evaluation point. Default is \code{bwcheck = NULL}.}
+  \item{bwcheck}{if a positive integer is provided, then the selected bandwidth is enlarged so that at least \code{bwcheck} effective observations are available at each evaluation point. Default is \code{bwcheck = NULL}.}
   
   \item{subset}{optional rule specifying a subset of observations to be used.}
 }
@@ -49,9 +49,9 @@ bwselect = "mse-dpi", bwcheck=NULL, subset = NULL)
 \item{opt}{A list containing options passed to the function.}
 }
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017a. \href{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2017_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference}. Journal of the American Statistical Association, forthcoming.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017a. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2017_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference}. Journal of the American Statistical Association, forthcoming.
 
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017b. \href{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Working Paper, University of Michigan.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Working Paper, University of Michigan.
 
 Fan, J., and Gijbels, I. 1996. Local polynomial modelling and its applications, London: Chapman and Hall.
 

@@ -1,4 +1,5 @@
-### version 0.0.1  06Nov2016
+### version 0.1.1  08Sep2017
+
 W.fun = function(u,kernel){
   if (kernel=="epa") w = 0.75*(1-u^2)*(abs(u)<=1)
   if (kernel=="uni") w =          0.5*(abs(u)<=1)

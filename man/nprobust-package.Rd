@@ -8,9 +8,9 @@
 \tabular{ll}{
 Package: \tab nprobust\cr
 Type: \tab Package\cr
-Version: \tab 0.1.0\cr
-Date: \tab 2017-09-01\cr
-License: \tab GPL-2\cr
+Version: \tab 0.1.1\cr
+Date: \tab 2017-09-14\cr
+License: \tab GPL-2\cr 
 }
 Function for LPR estimation and inference: \code{\link{lprobust}}\cr
 Function for LPR bandwidth selection: \code{\link{lpbwselect}}\cr

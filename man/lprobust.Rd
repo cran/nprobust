@@ -6,7 +6,7 @@
 
 Companion commands: \code{\link{lpbwselect}} for local polynomial data-driven bandwidth selection, and \code{\link{nprobust.plot}} for plotting results.
 
-A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017b). For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/nppackages/}
+A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017b). For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/nppackages/}.
 }
 \usage{
 lprobust(y, x, eval = NULL, neval = NULL, p = NULL, deriv = NULL, 
@@ -19,17 +19,17 @@ interior = FALSE, subset = NULL)
   
   \item{x}{independent variable.}
   
-  \item{eval}{vector of evaluation point(s).}
+  \item{eval}{vector of evaluation point(s). By default it uses 30 equally spaced points over to support of \code{x}.}
   
-  \item{neval}{number of quantile-spaced evaluation points on support of \code{x}.}
+  \item{neval}{number of quantile-spaced evaluation points on support of \code{x}. Default is \code{neval=30}.}
   
   \item{p}{polynomial order used to construct point estimator; default is \code{p = 1} (local linear regression).}
   
   \item{deriv}{derivative order of the regression function to be estimated. Default is \code{deriv=0} (regression function).}
   
-  \item{h}{main bandwidth used to construct local polynomial point estimator. Can be either scalar (same bandwidth for all evalution points), or vector of same dimension as \code{x}. If not specified, bandwidth \code{h} is computed by the companion command \code{\link{lpbwselect}}.}
+  \item{h}{main bandwidth used to construct local polynomial point estimator. Can be either scalar (same bandwidth for all evaluation points), or vector of same dimension as \code{eval}. If not specified, bandwidth \code{h} is computed by the companion command \code{\link{lpbwselect}}.}
   
-  \item{b}{bias bandwidth used to construct the bias-correction estimator. Can be either scalar (same bandwidth for all evalution points), or vector of same dimension as \code{x}. If not specified, bandwidth \code{b} is computed by the companion command \code{\link{lpbwselect}}.}
+  \item{b}{bias bandwidth used to construct the bias-correction estimator. Can be either scalar (same bandwidth for all evaluation points), or vector of same dimension as \code{eval}. If not specified,  \code{b} is computed by the companion command \code{\link{lpbwselect}}.}
   
   \item{rho}{\code{rho}=\code{h}/\code{b}. Default is \code{rho = 1} if \code{h} is specified but \code{b} is not.}
   
@@ -37,13 +37,13 @@ interior = FALSE, subset = NULL)
   
   \item{bwselect}{bandwidth selection procedure to be used via \code{\link{lpbwselect}}. By default it computes both \code{h} and \code{b}, unless \code{rho} is specified, in which case it only computes \code{h} and sets \code{b=h/rho}. Options are:
   
-    \code{mse-dpi} second-generation DPI implemenation of MSE-optimal bandwidth. Default option.
+    \code{mse-dpi} second-generation DPI implementation of MSE-optimal bandwidth. Default option.
 	
-	\code{mse-rot} ROT implemenation of MSE-optimal bandwidth.
+	\code{mse-rot} ROT implementation of MSE-optimal bandwidth.
 	
-	\code{imse-dpi} second-generation DPI implemenation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
+	\code{imse-dpi} second-generation DPI implementation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
 	
-	\code{imse-rot} ROT implemenation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
+	\code{imse-rot} ROT implementation of IMSE-optimal bandwidth (computed using grid of evaluation points selected).
 	
 	\code{ce-dpi} second generation DPI implementation of CE-optimal bandwidth.
 	
@@ -53,7 +53,7 @@ interior = FALSE, subset = NULL)
 	
 	Note: MSE = Mean Square Error; IMSE = Integrated Mean Squared Error; CE = Coverage Error; DPI = Direct Plug-in; ROT = Rule-of-Thumb. For details on implementation see Calonico, Cattaneo and Farrell (2017b).}
 	
-  \item{bwcheck}{if a positive integer provided, then the selected bandwidth is enlarged so that at least \code{bwcheck} effective observations are available at each evaluation point. Default is \code{bwcheck = NULL}.}
+  \item{bwcheck}{if a positive integer is provided, then the selected bandwidth is enlarged so that at least \code{bwcheck} effective observations are available at each evaluation point. Default is \code{bwcheck = NULL}.}
   
   \item{bwregul}{specifies scaling factor for the regularization term added to the denominator of bandwidth selectors. Setting \code{bwregul = 0} removes the regularization term from the bandwidth selectors. Default is \code{bwregul = 1}.}
   \item{imsegrid}{number of evaluations points used to compute the IMSE bandwidth selector. Default is \code{imsegrid = 30}.}
@@ -74,21 +74,21 @@ interior = FALSE, subset = NULL)
   
   \item{level}{confidence level used for confidence intervals; default is \code{level = 95}.}
   
-  \item{interior}{if TRUE, all evaluation points are assumed to be interior points. This option affects only data-driven bandwith selection via \code{\link{lpbwselect}}. Default is \code{interior = FALSE}.}
+  \item{interior}{if TRUE, all evaluation points are assumed to be interior points. This option affects only data-driven bandwidth selection via \code{\link{lpbwselect}}. Default is \code{interior = FALSE}.}
   
   \item{subset}{optional rule specifying a subset of observations to be used.}
 }
 \value{
 \item{Estimate}{A matrix containing \code{eval} (grid points), \code{h}, \code{b} (bandwidths), \code{N}
   (effective sample sizes), \code{m.us} (point estimates with p-th order local polynomial),
-  \code{m.bc} (bias corrected point estimates with q-th order local polynomial,
+  \code{m.bc} (bias corrected point estimates with (p+1)-th order local polynomial,
   \code{se.us} (standard error corresponding to \code{m.us}), and \code{se.rb} (robust standard error).}
 \item{opt}{A list containing options passed to the function.}
 }
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017a. \href{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2017_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference.} Journal of the American Statistical Association, forthcoming.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017a. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2017_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference.} Journal of the American Statistical Association, forthcoming.
 
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017b. \href{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper.
 
 Fan, J., and Gijbels, I. 1996. Local polynomial modelling and its applications, London: Chapman and Hall.
 
@@ -99,7 +99,7 @@ Sebastian Calonico, University of Miami, Coral Gables, FL. \email{scalonico@bus.
 
 Matias D. Cattaneo, University of Michigan, Ann Arbor, MI. \email{cattaneo@umich.edu}.
 
-Max H. Farrell, University of Chicago, Chicago, IL. email{max.farrell@chicagobooth.edu}.
+Max H. Farrell, University of Chicago, Chicago, IL. \email{max.farrell@chicagobooth.edu}.
 }
 \examples{
 x   <- runif(500)

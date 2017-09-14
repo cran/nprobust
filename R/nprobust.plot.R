@@ -31,7 +31,7 @@ nprobust.plot <- function(..., alpha=NULL, type=NULL, CItype=NULL,
       stop("Plotting type incorrectly specified.\n")
     }
     type <- rep(type, length.out=nfig)
-  }
+  } 
 
   # CI type
   if (length(CItype) == 0) {

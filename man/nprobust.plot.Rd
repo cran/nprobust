@@ -2,11 +2,11 @@
 \alias{nprobust.plot}
 \title{Graphical Presentation of Results from \code{nprobust} Package.}
 \description{
-\code{nprobust.plot} plots estimated density and regression function using \code{nprobust} package. A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017b).
+\code{nprobust.plot} plots estimated density and regression function using the \code{nprobust} package. A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017b).
 
 Companion commands: \code{\link{lprobust}} for local polynomial point estimation and inference procedures, and \code{\link{kdrobust}} for kernel density point estimation and inference procedures.
 
-For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/nppackages/}
+For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/nppackages/}.
 }
 \usage{
 nprobust.plot(..., alpha = NULL, type = NULL, CItype = NULL,
@@ -77,7 +77,7 @@ accordingly.}
 \item{legendGroups}{String Vector, group names used in legend.}
 }
 \value{
-\item{}{A standard \code{\link{ggplot2}} object is returned, hence can be used for further customization.}
+A standard \code{\link{ggplot2}} object is returned, hence can be used for further customization.
 }
 \details{
 Companion command: \code{\link{lprobust}} for local polynomial-based regression functions and derivatives estimation.
@@ -89,7 +89,7 @@ est <- lprobust(y,x)
 nprobust.plot(est)
 }
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017. \href{http://www-personal.umich.edu/~cattaneo/papers/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper.
 }
 \seealso{
 \code{\link{lprobust}}, \code{\link{kdrobust}}, \code{\link{ggplot2}}

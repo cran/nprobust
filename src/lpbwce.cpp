@@ -1,5 +1,5 @@
 #include <RcppArmadillo.h>
-#include <iostream>
+#include <iostream> 
 
 using namespace Rcpp;
 
