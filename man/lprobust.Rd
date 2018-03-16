@@ -2,15 +2,15 @@
 \alias{lprobust}
 \title{Local Polynomial Methods with Robust Bias-Corrected Inference}
 \description{
-\code{\link{lprobust}} implements local polynomial regression point estimators, with robust bias-corrected confidence intervals and inference procedures developed in Calonico, Cattaneo and Farrell (2017a). It also implements other estimation and inference procedures available in the literature. See Wand and Jones (1995) and Fan and Gijbels (1996) for background references.
+\code{\link{lprobust}} implements local polynomial regression point estimators, with robust bias-corrected confidence intervals and inference procedures developed in Calonico, Cattaneo and Farrell (2018). It also implements other estimation and inference procedures available in the literature. See Wand and Jones (1995) and Fan and Gijbels (1996) for background references.
 
 Companion commands: \code{\link{lpbwselect}} for local polynomial data-driven bandwidth selection, and \code{\link{nprobust.plot}} for plotting results.
 
-A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017b). For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/nppackages/}.
+A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017). For more details, and related Stata and R packages useful for empirical analysis, visit \url{https://sites.google.com/site/nppackages/}.
 }
 \usage{
 lprobust(y, x, eval = NULL, neval = NULL, p = NULL, deriv = NULL, 
-h = NULL, b = NULL, rho = NULL, kernel = "epa", bwselect = "mse-dpi",
+h = NULL, b = NULL, rho = NULL, kernel = "epa", bwselect = "mse-dpi", 
 bwcheck = NULL, bwregul = 1, imsegrid = 30, vce = "nn", nnmatch = 3, level = 95, 
 interior = FALSE, subset = NULL) 
 }
@@ -51,7 +51,7 @@ interior = FALSE, subset = NULL)
 	
 	\code{all} reports all available bandwidth selection procedures.
 	
-	Note: MSE = Mean Square Error; IMSE = Integrated Mean Squared Error; CE = Coverage Error; DPI = Direct Plug-in; ROT = Rule-of-Thumb. For details on implementation see Calonico, Cattaneo and Farrell (2017b).}
+	Note: MSE = Mean Square Error; IMSE = Integrated Mean Squared Error; CE = Coverage Error; DPI = Direct Plug-in; ROT = Rule-of-Thumb. For details on implementation see Calonico, Cattaneo and Farrell (2017).}
 	
   \item{bwcheck}{if a positive integer is provided, then the selected bandwidth is enlarged so that at least \code{bwcheck} effective observations are available at each evaluation point. Default is \code{bwcheck = NULL}.}
   
@@ -86,9 +86,9 @@ interior = FALSE, subset = NULL)
 \item{opt}{A list containing options passed to the function.}
 }
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017a. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2017_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference.} Journal of the American Statistical Association, forthcoming.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference.} Journal of the American Statistical Association, forthcoming.
 
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper.
 
 Fan, J., and Gijbels, I. 1996. Local polynomial modelling and its applications, London: Chapman and Hall.
 

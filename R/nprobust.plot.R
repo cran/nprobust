@@ -4,7 +4,7 @@ nprobust.plot <- function(..., alpha=NULL, type=NULL, CItype=NULL,
                           CIshade=NULL, CIcol=NULL, legendTitle=NULL, legendGroups=NULL) {
 
   ########################################
-  # check how many series are passed in
+  # check how many series are passed in 
   ########################################
 
   x <- list(...)

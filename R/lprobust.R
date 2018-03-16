@@ -1,6 +1,3 @@
-### version 0.0.1  06Nov2016
-### version 0.0.2  10Mar2017
-
 lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=NULL, rho=NULL, 
                     kernel="epa", bwselect="mse-dpi", bwcheck=NULL, bwregul=1, imsegrid=30,
                     vce="nn",  nnmatch=3, level=95, interior = FALSE, subset = NULL) {
@@ -119,6 +116,7 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
         lpbws <- lpbwselect(y=y, x=x,  eval=eval, deriv=deriv, p=p, rho=rho, vce=vce, bwselect=bwselect, interior=interior, kernel=kernel, bwcheck = bwcheck, bwregul=bwregul, imsegrid=imsegrid)
         h     <- lpbws$bws[,2]
         b     <- lpbws$bws[,3]
+        if (!is.null(rho) ) b <- h/rho
         rho   <- h/b
     }
   

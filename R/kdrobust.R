@@ -1,8 +1,5 @@
-### version 0.0.1  06Nov2016
-### version 0.0.2  10Mar2017
-
 kdrobust <- function(x, eval=NULL, neval=NULL, h=NULL, b=NULL, rho=NULL, kernel="epa", 
-                    bwselect="mse-dpi", bwcheck=NULL, level=95, subset = NULL) {
+                    bwselect="mse-dpi", bwcheck=15, level=95, subset = NULL) {
   
   p <- 2
   deriv <- 0
@@ -84,6 +81,7 @@ kdrobust <- function(x, eval=NULL, neval=NULL, h=NULL, b=NULL, rho=NULL, kernel=
       kdbws <- kdbwselect(x=x, eval=eval, bwselect=bwselect, bwcheck=bwcheck, kernel=kernel)
       h <- kdbws$bws[,2]
       b <- kdbws$bws[,3]
+      if (!is.null(rho) ) b <- h/rho
       rho <- h/b  
   }
   
@@ -98,7 +96,6 @@ kdrobust <- function(x, eval=NULL, neval=NULL, h=NULL, b=NULL, rho=NULL, kernel=
   colnames(Estimate)<-c("eval","h","b","N","tau.us","tau.bc","se.us","se.rb")
   
   for (i in 1:neval) {
-    
     
     if (!is.null(bwcheck)) {
       bw.min   <- sort(abs(x-eval[i]))[bwcheck]

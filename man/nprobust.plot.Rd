@@ -2,7 +2,7 @@
 \alias{nprobust.plot}
 \title{Graphical Presentation of Results from \code{nprobust} Package.}
 \description{
-\code{nprobust.plot} plots estimated density and regression function using the \code{nprobust} package. A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017b).
+\code{nprobust.plot} plots estimated density and regression function using the \code{nprobust} package. A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2017).
 
 Companion commands: \code{\link{lprobust}} for local polynomial point estimation and inference procedures, and \code{\link{kdrobust}} for kernel density point estimation and inference procedures.
 
@@ -89,7 +89,7 @@ est <- lprobust(y,x)
 nprobust.plot(est)
 }
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2017. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2017_nprobust.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper. 
 }
 \seealso{
 \code{\link{lprobust}}, \code{\link{kdrobust}}, \code{\link{ggplot2}}

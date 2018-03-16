@@ -1,6 +1,3 @@
-### version 0.0.1  06Nov2016
-### version 0.0.2  10Mar2017
-
 lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, rho=NULL, kernel="epa", 
                       bwselect="mse-dpi", bwcheck=NULL, bwregul=1, imsegrid=30, vce="nn", nnmatch=3, 
                       interior=FALSE, subset=NULL){

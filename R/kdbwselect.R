@@ -1,8 +1,5 @@
-### version 0.0.1  06Nov2016
-### version 0.0.2  10Mar2017
-
 kdbwselect <- function(x, eval=NULL, neval=NULL, rho=NULL, kernel="epa", 
-                       bwselect="mse-dpi", bwcheck=NULL, subset = NULL){
+                       bwselect="mse-dpi", bwcheck=15, subset = NULL){
   
   p <- 2
   deriv <- 0
@@ -68,11 +65,7 @@ kdbwselect <- function(x, eval=NULL, neval=NULL, rho=NULL, kernel="epa",
   h.imse.rot <- sd(x)*C.h*N^(-1/(1+2*p))
   b.imse.rot <- sd(x)*C.b*N^(-1/(1+2*(p+2)+2*p))
   
-  if (!is.null(bwcheck)) {
-    bw.min     <- sort(abs(x-eval[i]))[bwcheck]
-    h.imse.rot <- max(h.imse.rot, bw.min)
-    b.imse.rot <- max(b.imse.rot, bw.min)
-  }
+
   
   if (bwselect=="imse-rot") {
     neval = eval = 1
@@ -99,6 +92,12 @@ kdbwselect <- function(x, eval=NULL, neval=NULL, rho=NULL, kernel="epa",
     #V.b <- f.h.rot*kd.K.fun(1, v=p+2, r=p, kernel=kernel)$R.v
     #B.b <- f.q.rot*kd.K.fun(1, v=p+2, r=p, kernel=kernel)$k.v
     #b.mse.dpi <- bw.fun(V.b, B.b, N, v=p+2, r=p)
+    
+    if (!is.null(bwcheck)) {
+      bw.min     <- sort(abs(x-eval[i]))[bwcheck]
+      h.imse.rot <- max(h.imse.rot, bw.min)
+      b.imse.rot <- max(b.imse.rot, bw.min)
+    }
     
     K.b <- kd.K.fun((x-eval[i])/b.imse.rot, v=p+2, r=p,     kernel=kernel)    
     K.h <- kd.K.fun((x-eval[i])/h.imse.rot, v=p,   r=deriv, kernel=kernel)
