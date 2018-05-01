@@ -8,8 +8,8 @@
 \tabular{ll}{
 Package: \tab nprobust\cr
 Type: \tab Package\cr
-Version: \tab 0.1.2\cr
-Date: \tab 2018-03-16\cr
+Version: \tab 0.1.3\cr
+Date: \tab 2018-05-01\cr
 License: \tab GPL-2\cr 
 }
 Function for LPR estimation and inference: \code{\link{lprobust}}\cr

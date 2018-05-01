@@ -6,7 +6,7 @@ using namespace Rcpp;
 // [[Rcpp::depends("RcppArmadillo")]]
 // [[Rcpp::export]]
 
-List lpbwce(arma::vec y, arma::vec x, arma::vec K, arma::vec L, arma::vec res, double c, int p, int q, double h, double b) {
+List lpbwce(arma::vec y, arma::vec x, arma::vec K, arma::vec L, arma::vec res, double c, int p, int q, double h, double b, int deriv, int fact) {
 
   int N = y.n_rows;
   float rho = h / b;
@@ -33,9 +33,9 @@ List lpbwce(arma::vec y, arma::vec x, arma::vec K, arma::vec L, arma::vec res, d
   arma::mat iGq = Gq.i();
 
   arma::mat ep1(q+1,1,arma::fill::zeros);
-  ep1(p+1)=1;
+  ep1(p+1) = 1;
   arma::mat e0(p+1,1,arma::fill::zeros);
-  e0(0)=1;
+  e0(deriv) = fact;
 
   arma::mat lus0 = e0.t()*iGp*(dK*Rp).t();
   arma::mat lbc0 = lus0 - pow(rho,p+1)*(e0.t()*iGp)*Lp1*ep1.t()*iGq*(dL*Rq).t();
@@ -59,7 +59,7 @@ List lpbwce(arma::vec y, arma::vec x, arma::vec K, arma::vec L, arma::vec res, d
     Lrrq  += L(i)*Rqi.t()*Rqi;
     Krxip += K(i)*Rpi*pow(Xh(i),p+1) ;
     for (int j = 0 ; j < N ; j++) {
-      if (j != i) Krxp += K(i)*Rpi*pow(Xh(j),p+1) ;
+      if (j != i) Krxp += K(i)*Rpi*pow(Xh(j),p+1);
     }
   }
 
@@ -91,10 +91,10 @@ List lpbwce(arma::vec y, arma::vec x, arma::vec K, arma::vec L, arma::vec res, d
 
     q1 += pow(lbc0(i)*res(i),3);
 
-    arma::mat lus1 = iGp.row(0) * (EKrrp - K(i)*Rpi.t()*Rpi)*iGp*K(i)*Rpi.t();
-    arma::mat T1   = iGp.row(0) * ((EKrrp - K(i)*Rpi.t()*Rpi)*iGp*Lp1*ep1.t())    *(iGq*L(i)*Rqi.t());
-    arma::mat T2   = iGp.row(0) * ((K(i)*Rpi*pow(Xh(i),p+1) - EKrxip).t())*ep1.t()*(iGq*L(i)*Rqi.t());
-    arma::mat T3   = iGp.row(0) * ((Lp1*ep1.t()*iGq)*(ELrrq - L(i)*Rqi.t()*Rqi))  *(iGq*L(i)*Rqi.t());
+    arma::mat lus1 = fact * iGp.row(deriv) * (EKrrp - K(i)*Rpi.t()*Rpi)*iGp*K(i)*Rpi.t();
+    arma::mat T1   = fact * iGp.row(deriv) * ((EKrrp - K(i)*Rpi.t()*Rpi)*iGp*Lp1*ep1.t())    *(iGq*L(i)*Rqi.t());
+    arma::mat T2   = fact * iGp.row(deriv) * ((K(i)*Rpi*pow(Xh(i),p+1) - EKrxip).t())*ep1.t()*(iGq*L(i)*Rqi.t());
+    arma::mat T3   = fact * iGp.row(deriv) * ((Lp1*ep1.t()*iGq)*(ELrrq - L(i)*Rqi.t()*Rqi))  *(iGq*L(i)*Rqi.t());
     arma::mat lbc1 = lus1 - pow(rho,p+1)*(T1 + T2 + T3);
 
     q2 += lbc1*lbc0(i)*pow(res(i),2);
@@ -123,10 +123,10 @@ List lpbwce(arma::vec y, arma::vec x, arma::vec K, arma::vec L, arma::vec res, d
         arma::mat Rpj = Rp.row(j);
         arma::mat Rqj = Rq.row(j);
 
-        arma::mat lus1 = iGp.row(0) *  (EKrrp - K(j)*Rpj.t()*Rpj)*iGp*K(i)*Rpi.t();
-        arma::mat T1   = iGp.row(0) * ((EKrrp - K(j)*Rpj.t()*Rpj)*iGp*Lp1*ep1.t())    *(iGq*L(i)*Rqi.t());
-        arma::mat T2   = iGp.row(0) * ((K(j)*Rpj*pow(Xh(i),p+1) - EKrxp).t())*ep1.t() *(iGq*L(i)*Rqi.t());
-        arma::mat T3   = iGp.row(0) * ((Lp1*ep1.t()*iGq)*(ELrrq - L(j)*Rqj.t()*Rqj))  *(iGq*L(i)*Rqi.t());
+        arma::mat lus1 = fact * iGp.row(deriv) *  (EKrrp - K(j)*Rpj.t()*Rpj)*iGp*K(i)*Rpi.t();
+        arma::mat T1   = fact * iGp.row(deriv) * ((EKrrp - K(j)*Rpj.t()*Rpj)*iGp*Lp1*ep1.t())    *(iGq*L(i)*Rqi.t());
+        arma::mat T2   = fact * iGp.row(deriv) * ((K(j)*Rpj*pow(Xh(i),p+1) - EKrxp).t())*ep1.t() *(iGq*L(i)*Rqi.t());
+        arma::mat T3   = fact * iGp.row(deriv) * ((Lp1*ep1.t()*iGq)*(ELrrq - L(j)*Rqj.t()*Rqj))  *(iGq*L(i)*Rqi.t());
         arma::mat lbc1 = lus1 - pow(rho,p+1)*(T1 + T2 + T3);
 
         q10 += lbc1*lbc0(i)*pow(lbc0(j)*res(j),2)*vx(i);

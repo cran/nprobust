@@ -1,5 +1,5 @@
-kdrobust <- function(x, eval=NULL, neval=NULL, h=NULL, b=NULL, rho=NULL, kernel="epa", 
-                    bwselect="mse-dpi", bwcheck=15, level=95, subset = NULL) {
+kdrobust <- function(x, eval=NULL, neval=NULL, h=NULL, b=NULL, rho=1, kernel="epa", 
+                    bwselect=NULL, bwcheck=21, imsegrid=30, level=95, subset = NULL) {
   
   p <- 2
   deriv <- 0
@@ -7,28 +7,35 @@ kdrobust <- function(x, eval=NULL, neval=NULL, h=NULL, b=NULL, rho=NULL, kernel=
   na.ok <- complete.cases(x) 
   x <- x[na.ok]
   
-  kernel   <- tolower(kernel)
-  bwselect <- tolower(bwselect)
-  
   x.min <- min(x);  x.max <- max(x)
   N <- length(x)
   #quant <- -qnorm(abs((1-(level/100))/2))
   
   if (is.null(eval)) {
     if (is.null(neval)) {
+      qseq <- seq(0.1,0.9,length.out=30)
+      eval <- quantile(x, qseq)
       #eval <- unique(x)
       #qseq <- seq(0,1,1/(20+1))
       #eval <- quantile(x, qseq[2:(length(qseq)-1)])
-      eval <- seq(x.min, x.max, length.out=30)
+      #eval <- seq(x.min, x.max, length.out=30)
     }
     else {
+      qseq <- seq(0.1,0.9,length.out=neval)
+      eval <- quantile(x, qseq)
       #eval <- seq(x.min,x.max,length.out=neval)
       #qseq <- seq(0,1,1/(neval+1))
       #eval <- quantile(x, qseq[2:(length(qseq)-1)])
-      eval <- seq(x.min, x.max, length.out=neval)
+      #eval <- seq(x.min, x.max, length.out=neval)
     }
   }
   neval <- length(eval)
+  
+  if (is.null(h) & is.null(bwselect) & neval==1) bwselect="mse-dpi"
+  if (is.null(h) & is.null(bwselect) & neval>1)  bwselect="imse-dpi"  
+  
+  kernel   <- tolower(kernel)
+  bwselect <- tolower(bwselect)
   
   #####################################################   CHECK ERRORS
   exit<-0
@@ -37,10 +44,10 @@ kdrobust <- function(x, eval=NULL, neval=NULL, h=NULL, b=NULL, rho=NULL, kernel=
     #  exit = 1
     #}
     
-  if  (bwselect!="imse-rot" & bwselect!="imse-dpi" & bwselect!="mse-dpi" & bwselect!="ce-dpi" & bwselect!="ce-rot" & bwselect!="all" & bwselect!=""){
-    print("bwselect incorrectly specified")  
-    exit = 1
-  }
+  #if  (bwselect!="imse-rot" & bwselect!="imse-dpi" & bwselect!="mse-dpi" & bwselect!="ce-dpi" & bwselect!="ce-rot" & bwselect!="all" & !is.null(bwselect)){
+  #  print("bwselect incorrectly specified")  
+  #  exit = 1
+  #}
   
     #if (min(eval)<x.min | max(eval)>x.max){
     #  print("evaluation points should be set within the range of x")
@@ -58,12 +65,12 @@ kdrobust <- function(x, eval=NULL, neval=NULL, h=NULL, b=NULL, rho=NULL, kernel=
       exit = 1
     }
     
-    if (!is.null(rho)){  
+    #if (!is.null(rho)){  
        if (rho<0){
           print("rho should be greater than 0")
           exit = 1
         }
-    }
+    #}
   
     if (exit>0) stop()
     if (!is.null(h)) bwselect = "Manual"
@@ -72,16 +79,16 @@ kdrobust <- function(x, eval=NULL, neval=NULL, h=NULL, b=NULL, rho=NULL, kernel=
   if (kernel=="epa") kernel.type <- "Epanechnikov"
   if (kernel=="uni") kernel.type <- "Uniform"
 
-  if (!is.null(h) & is.null(rho) & is.null(b)) {
-    rho <- rep(1,neval)
-    b <- h
+  if (!is.null(h) & rho>0 & is.null(b)) {
+    #rho <- rep(1,neval)
+    b <- h/rho
   }
-  if (!is.null(h) & !is.null(rho) ) b <- h/rho
+  #if (!is.null(h) & !is.null(rho) ) b <- h/rho
   if (is.null(h)) {
-      kdbws <- kdbwselect(x=x, eval=eval, bwselect=bwselect, bwcheck=bwcheck, kernel=kernel)
+      kdbws <- kdbwselect(x=x, eval=eval, bwselect=bwselect, bwcheck=bwcheck, imsegrid=imsegrid, kernel=kernel)
       h <- kdbws$bws[,2]
       b <- kdbws$bws[,3]
-      if (!is.null(rho) ) b <- h/rho
+      if (rho>0) b <- h/rho
       rho <- h/b  
   }
   
@@ -130,7 +137,7 @@ print.kdrobust <- function(x,...){
   
   cat(paste("Sample size (n)                            =     ", x$opt$n,        "\n", sep=""))
   cat(paste("Kernel order for point estimation (p)      =     ", x$opt$p,        "\n", sep=""))
-  cat(paste("Kernel function                            =     ", x$opt$kernel.type,   "\n", sep=""))
+  cat(paste("Kernel function                            =     ", x$opt$kernel,   "\n", sep=""))
   cat(paste("Bandwidth method                           =     ", x$opt$bwselect, "\n", sep=""))
   cat("\n")
   

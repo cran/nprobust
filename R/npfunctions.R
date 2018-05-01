@@ -160,23 +160,47 @@ lprobust.res = function(X, y, m, hii, vce, matches, dups, dupsid, d) {
 }
 
 
-lprobust.vce = function(RX, res) {
+lprobust.vce = function(RX, res, C) {
+  n = length(C)
   k = ncol(RX)
-  M = crossprod(c(res)*RX)
+  M = matrix(0,k,k)
+  if (is.null(C)) {
+    w = 1
+    M = crossprod(c(res)*RX)
+  }
+  else {	
+    clusters = unique(C)
+    g        = length(clusters)
+    w        = ((n-1)/(n-k))*(g/(g-1))
+    for (i in 1:g) {
+        ind = C==clusters[i]
+        Xi  = RX[ind,]
+        ri  = res[ind,]
+        M   = M + crossprod(t(crossprod(Xi,ri)),t(crossprod(Xi,ri)))
+    }
+  }
   return(M)
 }
 
-lprobust.bw = function(Y, X, c, o, nu, o.B, h.V, h.B1, h.B2, scale, vce, nnmatch, kernel, dups, dupsid){
+lprobust.bw = function(Y, X, cluster, c, o, nu, o.B, h.V, h.B1, h.B2, scale, vce, nnmatch, kernel, dups, dupsid) {
+  
+  ### Variance
+  dC = 0
+  eC = NULL
   w = W.fun((X-c)/h.V, kernel)/h.V
   ind.V = w> 0; eY = Y[ind.V];eX = X[ind.V];eW = w[ind.V]
   n.V = sum(ind.V)
   R.V = matrix(NA,n.V,o+1)
   for (j in 1:(o+1)) R.V[,j] = (eX-c)^(j-1)
   invG.V = qrXXinv(R.V*sqrt(eW))
-  #e.v = matrix(0,(o+1),1); e.v[nu+1]=1
   beta.V = invG.V%*%crossprod(R.V*eW,eY)
-  dups.V=dupsid.V=predicts.V=0
+  dups.V = dupsid.V = predicts.V = 0
 
+  if (!is.null(cluster)) {
+    dC = 1
+    eC =  cluster[ind.V] 
+  }
+  
   if (vce=="nn") {
     dups.V   = dups[ind.V]
     dupsid.V = dupsid[ind.V]
@@ -192,8 +216,9 @@ lprobust.bw = function(Y, X, c, o, nu, o.B, h.V, h.B1, h.B2, scale, vce, nnmatch
     }
   }
   res.V = lprobust.res(eX, eY, predicts.V, hii, vce, nnmatch, dups.V, dupsid.V, o+1)
-  V.V = (invG.V%*%lprobust.vce(R.V*eW, res.V)%*%invG.V)[nu+1,nu+1]
+  V.V   = (invG.V%*%lprobust.vce(R.V*eW, res.V, eC)%*%invG.V)[nu+1,nu+1]
   
+  ### BIAS
   #Hp = diag(c(1,poly(h.V,degree=o,raw=TRUE)))
   Hp = 0
   for (j in 1:(o+1)) Hp[j] = h.V^((j-1))
@@ -207,6 +232,8 @@ lprobust.bw = function(Y, X, c, o, nu, o.B, h.V, h.B1, h.B2, scale, vce, nnmatch
   n.B = sum(ind)
   eY = Y[ind];eX = X[ind];eW = w[ind]
   
+  if (!is.null(cluster)) eC =  cluster[ind] 
+  
   R.B1 = matrix(NA,n.B,o.B+1)
   for (j in 1:(o.B+1)) R.B1[,j] = (eX-c)^(j-1)
   invG.B1 = qrXXinv(R.B1*sqrt(eW))
@@ -215,13 +242,13 @@ lprobust.bw = function(Y, X, c, o, nu, o.B, h.V, h.B1, h.B2, scale, vce, nnmatch
   BWreg=0
   if (scale>0) {
     #e.B = matrix(0,(o.B+1),1); e.B[o+2]=1
-    dups.B=dupsid.B=hii=predicts.B=0
+    dups.B = dupsid.B = hii = predicts.B = 0
     if (vce=="nn") {
       dups.B   = dups[ind]
       dupsid.B = dupsid[ind]
     }
     if (vce=="hc0" | vce=="hc1" | vce=="hc2" | vce=="hc3") {
-      predicts.B=R.B1%*%beta.B1
+      predicts.B = R.B1%*%beta.B1
       if (vce=="hc2" | vce=="hc3") {
         hii=matrix(NA,n.B,1)
         for (i in 1:n.B) {
@@ -230,7 +257,7 @@ lprobust.bw = function(Y, X, c, o, nu, o.B, h.V, h.B1, h.B2, scale, vce, nnmatch
       }
     }
     res.B = lprobust.res(eX, eY, predicts.B, hii, vce, nnmatch, dups.B, dupsid.B,o.B+1)
-    V.B = (invG.B1%*%lprobust.vce(R.B1*eW, res.B)%*%invG.B1)[o+2,o+2]
+    V.B = (invG.B1%*%lprobust.vce(R.B1*eW, res.B, eC)%*%invG.B1)[o+2,o+2]
     BWreg = 3*BConst1^2*V.B
   }
   
@@ -259,7 +286,7 @@ lprobust.bw = function(Y, X, c, o, nu, o.B, h.V, h.B1, h.B2, scale, vce, nnmatch
 }
 
 
-lpbwselect.ce.dpi = function(y, x, h, b, eval, p, q, rho, kernel, vce, nnmatch, interior, bwregul){
+lpbwselect.ce.dpi = function(y, x, h, b, eval, p, q, deriv, rho, kernel, vce, nnmatch, interior, bwregul){
   
   rho <- 1
   bwregul <- 0
@@ -268,18 +295,7 @@ lpbwselect.ce.dpi = function(y, x, h, b, eval, p, q, rho, kernel, vce, nnmatch, 
   range = max(x)-min(x)
   
   dups <- dupsid <- hii <- predicts <- NULL
-  #if (vce=="nn") {
-  #  order.x = order(x)
-  #  x = x[order.x];   y = y[order.x]
-  #  for (j in 1:N) {
-  #    dups[j]=sum(x==x[j])
-  #  }
-  #  j=1
-  #  while (j<=N) {
-  #    dupsid[j:(j+dups[j]-1)] = 1:dups[j]
-  #    j = j+dups[j]
-  #  }
-  #}
+
 
   if (vce=="nn") {
     order.x <- order(x)
@@ -348,7 +364,7 @@ lpbwselect.ce.dpi = function(y, x, h, b, eval, p, q, rho, kernel, vce, nnmatch, 
   }
 
   res.q <- lprobust.res(eX, eY, as.matrix(predicts), hii, vce, nnmatch, edups, edupsid, q+1)
-
+ 
   ### Bias
   k <- p+3
   r.k <- matrix(NA,N,k+3)
@@ -365,7 +381,7 @@ lpbwselect.ce.dpi = function(y, x, h, b, eval, p, q, rho, kernel, vce, nnmatch, 
   e.p.1 <- matrix(0,(q+1),1); e.p.1[p+2]=1
   e.0   <- matrix(0,(p+1),1); e.0[1]=1
 
-  q.terms <- lpbwce(y = eY, x = eX,  K=eK.h, L=eL.b, res=res.q, c = eval, p=p, q=q, h=h, b=b)
+  q.terms <- lpbwce(y = eY, x = eX,  K=eK.h, L=eL.b, res=res.q, c = eval, p=p, q=q, h=h, b=b, deriv=deriv, fact=factorial(deriv))
   q1.rbc  <- q.terms$q1rbc
   q2.rbc  <- q.terms$q2rbc
   q3.rbc  <- q.terms$q3rbc
@@ -413,7 +429,7 @@ lpbwselect.ce.dpi = function(y, x, h, b, eval, p, q, rho, kernel, vce, nnmatch, 
   return(out)
 }
 
-lpbwselect.imse.dpi = function(y, x, p, q, deriv, kernel, bwcheck, bwregul, imsegrid, vce, nnmatch, interior){
+lpbwselect.imse.dpi = function(y, x, cluster, p, q, deriv, kernel, bwcheck, bwregul, imsegrid, vce, nnmatch, interior){
 
   N <- length(x)
   x.max <- max(x);  x.min <- min(x)
@@ -425,7 +441,7 @@ lpbwselect.imse.dpi = function(y, x, p, q, deriv, kernel, bwcheck, bwregul, imse
   V.h <- B.h <- V.b <- B.b <- 0
 
   for (i in 1:neval) {
-    est <- lpbwselect.mse.dpi(y=y, x=x, eval=eval[i], p=p, q=q, deriv=deriv, kernel=kernel,
+    est <- lpbwselect.mse.dpi(y=y, x=x, cluster=cluster, eval=eval[i], p=p, q=q, deriv=deriv, kernel=kernel,
                               bwcheck=bwcheck, bwregul=bwregul, vce=vce, nnmatch=nnmatch, interior=interior)
     
     V.h[i] <- est$V.h;    B.h[i] <- est$B.h
@@ -477,7 +493,7 @@ lpbwselect.imse.rot = function(y, x, p, deriv, kernel, imsegrid){
 }
 
 
-lpbwselect.mse.dpi = function(y, x, eval, p, q, deriv, kernel, bwcheck, bwregul, vce, nnmatch, interior){
+lpbwselect.mse.dpi = function(y, x, cluster, eval, p, q, deriv, kernel, bwcheck, bwregul, vce, nnmatch, interior){
 
   even <- (p-deriv)%%2==0
 
@@ -514,7 +530,7 @@ lpbwselect.mse.dpi = function(y, x, eval, p, q, deriv, kernel, bwcheck, bwregul,
     bw.adj <- 1
   }
 
-   C.d1 <- lprobust.bw(y, x, c=eval, o=q+1, nu=q+1, o.B=q+2, h.V=c.bw, h.B1=range, h.B2=range, 0, vce, nnmatch, kernel, dups, dupsid)
+   C.d1 <- lprobust.bw(y, x, cluster, c=eval, o=q+1, nu=q+1, o.B=q+2, h.V=c.bw, h.B1=range, h.B2=range, 0, vce, nnmatch, kernel, dups, dupsid)
    if (even==FALSE | interior==TRUE) {
        bw.mp2 <- c(C.d1$bw)
     }
@@ -525,7 +541,7 @@ lpbwselect.mse.dpi = function(y, x, eval, p, q, deriv, kernel, bwcheck, bwregul,
     
     if (!is.null(bwcheck)) bw.mp2 <- max(bw.mp2, bw.min)
     
-    C.d2 <- lprobust.bw(y, x, c=eval, o=q+2, nu=q+2, o.B=q+3, h.V=c.bw, h.B1=range, h.B2=range, 0, vce, nnmatch, kernel, dups, dupsid)
+    C.d2 <- lprobust.bw(y, x, cluster, c=eval, o=q+2, nu=q+2, o.B=q+3, h.V=c.bw, h.B1=range, h.B2=range, 0, vce, nnmatch, kernel, dups, dupsid)
     if (even==FALSE | interior==TRUE) {
       bw.mp3 <- c(C.d2$bw)
     }
@@ -541,7 +557,7 @@ lpbwselect.mse.dpi = function(y, x, eval, p, q, deriv, kernel, bwcheck, bwregul,
     
     
     ### Select preliminar bw b
-    C.b <- lprobust.bw(y, x, c=eval, o=q, nu=p+1, o.B=q+1, h.V=c.bw, h.B1=bw.mp2, h.B2=bw.mp3, bwregul, vce, nnmatch, kernel, dups, dupsid)
+    C.b <- lprobust.bw(y, x, cluster, c=eval, o=q, nu=p+1, o.B=q+1, h.V=c.bw, h.B1=bw.mp2, h.B2=bw.mp3, bwregul, vce, nnmatch, kernel, dups, dupsid)
     
     if (even==FALSE | interior==TRUE) {
       b.mse.dpi <- c(C.b$bw)
@@ -556,7 +572,7 @@ lpbwselect.mse.dpi = function(y, x, eval, p, q, deriv, kernel, bwcheck, bwregul,
     bw.mp1 = b.mse.dpi
     
     ### Select final bw h
-    C.h <- lprobust.bw(y, x, c=eval, o=p, nu=deriv, o.B=q, h.V=c.bw, h.B1=bw.mp1, h.B2=bw.mp2, bwregul, vce, nnmatch, kernel, dups, dupsid)
+    C.h <- lprobust.bw(y, x, cluster, c=eval, o=p, nu=deriv, o.B=q, h.V=c.bw, h.B1=bw.mp1, h.B2=bw.mp2, bwregul, vce, nnmatch, kernel, dups, dupsid)
     
     if (even==FALSE | interior==TRUE) {
       h.mse.dpi <- c(C.h$bw)

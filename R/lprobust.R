@@ -1,6 +1,6 @@
-lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=NULL, rho=NULL, 
-                    kernel="epa", bwselect="mse-dpi", bwcheck=NULL, bwregul=1, imsegrid=30,
-                    vce="nn",  nnmatch=3, level=95, interior = FALSE, subset = NULL) {
+lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=NULL, rho=1, 
+                    kernel="epa", bwselect=NULL, bwcheck=21, bwregul=1, imsegrid=30,
+                    vce="nn", cluster=NULL, nnmatch=3, level=95, interior = FALSE, subset = NULL) {
   
   if (!is.null(subset)) {
     x <- x[subset]
@@ -9,9 +9,15 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
   
   na.ok <- complete.cases(x) & complete.cases(y)
 
+  if (!is.null(cluster)){
+    if (!is.null(subset))  cluster <- cluster[subset]
+    na.ok <- na.ok & complete.cases(cluster)
+  } 
+  
   x <- x[na.ok]
   y <- y[na.ok]
-
+  if (!is.null(cluster)) cluster = cluster[na.ok]
+  
   if (!is.null(deriv) & is.null(p)) p <- deriv+1
   if (is.null(p))         p <- 1
   if (is.null(deriv)) deriv <- 0
@@ -36,16 +42,28 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
   }
   neval <- length(eval)
   
+  if (is.null(h) & is.null(bwselect) & neval==1) bwselect="mse-dpi"
+  if (is.null(h) & is.null(bwselect) & neval>1)  bwselect="imse-dpi"  
+  
   if (vce=="nn") {
     order.x <- order(x)
     x <- x[order.x]
     y <- y[order.x]
+    if (!is.null(cluster)) cluster = cluster[order.x]
   }
 
   kernel   <- tolower(kernel)
   bwselect <- tolower(bwselect)
   vce      <- tolower(vce)
 
+  vce_type = "NN"
+  if (vce=="hc0")     		vce_type = "HC0"
+  if (vce=="hc1")      	  vce_type = "HC1"
+  if (vce=="hc2")      	  vce_type = "HC2"
+  if (vce=="hc3")      	  vce_type = "HC3"
+  if (vce=="cluster")  	  vce_type = "Cluster"
+  if (vce=="nncluster") 	vce_type = "NNcluster"
+  
   #####################################################   CHECK ERRORS
   exit=0
     if (kernel!="uni" & kernel!="uniform" & kernel!="tri" & kernel!="triangular" & kernel!="epa" & kernel!="epanechnikov" & kernel!="" ){
@@ -53,10 +71,10 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
       exit <- 1
     }
     
-  if  (bwselect!="mse-dpi" & bwselect!="mse-rot" & bwselect!="imse-dpi" & bwselect!="imse-rot" & bwselect!="ce-dpi" & bwselect!="ce-rot" & bwselect!=""){
-    print("bwselect incorrectly specified")  
-    exit <- 1
-  }
+  #if  (bwselect!="mse-dpi" & bwselect!="mse-rot" & bwselect!="imse-dpi" & bwselect!="imse-rot" & bwselect!="ce-dpi" & bwselect!="ce-rot" & bwselect!=NULL){
+  #  print("bwselect incorrectly specified")  
+  #  exit <- 1
+  #}
   
   if (vce!="nn" & vce!="" & vce!="hc1" & vce!="hc2" & vce!="hc3" & vce!="hc0"){ 
     print("vce incorrectly specified")
@@ -91,32 +109,35 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
       exit <- 1
     }
     
-    if (!is.null(rho)){  
+    #if (!is.null(rho)){  
       if (rho<0){
           print("rho should be greater than 0")
           exit <- 1
       }
-    }
+    #}
   
     if (exit>0) stop()
     if (!is.null(h)) bwselect <- "Manual"
-    if (!is.null(h) & is.null(rho) & is.null(b)) {
-      rho <- 1
-        b <- h
+    #if (is.null(rho)) rho <- 1
+    if (!is.null(h) & rho>0 & is.null(b)) {
+    #  rho <- 1
+        b <- h/rho
     }
-    if (!is.null(h) & !is.null(rho) ) b <- h/rho
+    #if (!is.null(h) & rho>0) b <- h/rho
     
   kernel.type <- "Triangular"
   if (kernel=="epanechnikov" | kernel=="epa") kernel.type <- "Epanechnikov"
   if (kernel=="uniform"      | kernel=="uni") kernel.type <- "Uniform"
   
+
+    
   ############################################################################################
     #print("Preparing data.") 
     if (is.null(h)) {
-        lpbws <- lpbwselect(y=y, x=x,  eval=eval, deriv=deriv, p=p, rho=rho, vce=vce, bwselect=bwselect, interior=interior, kernel=kernel, bwcheck = bwcheck, bwregul=bwregul, imsegrid=imsegrid)
+        lpbws <- lpbwselect(y=y, x=x,  eval=eval, deriv=deriv, p=p, vce=vce, cluster=cluster, bwselect=bwselect, interior=interior, kernel=kernel, bwcheck = bwcheck, bwregul=bwregul, imsegrid=imsegrid, subset=subset)
         h     <- lpbws$bws[,2]
         b     <- lpbws$bws[,3]
-        if (!is.null(rho) ) b <- h/rho
+        if (rho>0) b <- h/rho
         rho   <- h/b
     }
   
@@ -159,6 +180,9 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
     W.h <- w.h[ind]
     W.b <- w.b[ind]
     
+    eC = NULL
+    if (!is.null(cluster)) eC = cluster[ind]
+    
     edups <- edupsid <- 0	
     if (vce=="nn") {
       for (j in 1:eN) {
@@ -185,8 +209,8 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
   Q.q     <- t(t(R.p*W.h) - h[i]^(p+1)*(L%*%t(e.p1))%*%t(t(invG.q%*%t(R.q))*W.b))
   beta.p  <- invG.p%*%crossprod(R.p*W.h,eY); beta.q <- invG.q%*%crossprod(R.q*W.b,eY); beta.bc <- invG.p%*%crossprod(Q.q,eY) 
 
-    tau.cl <- factorial(deriv)*beta.p[(deriv+1),1]
-    tau.bc <- factorial(deriv)*beta.bc[(deriv+1),1]
+  tau.cl <- factorial(deriv)*beta.p[(deriv+1),1]
+  tau.bc <- factorial(deriv)*beta.bc[(deriv+1),1]
 
   hii=predicts.p=predicts.q=0
   if (vce=="hc0" | vce=="hc1" | vce=="hc2" | vce=="hc3") {
@@ -202,8 +226,8 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
 	if (vce=="nn") res.b <- res.h
 	else           res.b <- lprobust.res(eX, eY, predicts.q, hii, vce, nnmatch, edups, edupsid, q+1)
   
-	V.Y.cl <- invG.p%*%lprobust.vce(R.p*W.h, res.h)%*%invG.p
-	V.Y.bc <- invG.p%*%lprobust.vce(Q.q,     res.b)%*%invG.p
+	V.Y.cl <- invG.p%*%lprobust.vce(as.matrix(R.p*W.h), res.h, eC)%*%invG.p
+	V.Y.bc <- invG.p%*%lprobust.vce(Q.q,     res.b, eC)%*%invG.p
 	se.cl  <- sqrt(factorial(deriv)^2*V.Y.cl[deriv+1,deriv+1])
 	se.rb  <- sqrt(factorial(deriv)^2*V.Y.bc[deriv+1,deriv+1])
 	

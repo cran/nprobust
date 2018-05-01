@@ -1,5 +1,5 @@
-kdbwselect <- function(x, eval=NULL, neval=NULL, rho=NULL, kernel="epa", 
-                       bwselect="mse-dpi", bwcheck=15, subset = NULL){
+kdbwselect <- function(x, eval=NULL, neval=NULL, kernel="epa", 
+                       bwselect="mse-dpi", bwcheck=21, imsegrid=30, subset = NULL){
   
   p <- 2
   deriv <- 0
@@ -16,15 +16,19 @@ kdbwselect <- function(x, eval=NULL, neval=NULL, rho=NULL, kernel="epa",
   if (is.null(eval)) {
     if (is.null(neval)) {
       #eval <- unique(x)
-      #qseq <- seq(0,1,1/(20+1))
-      #eval <- quantile(x, qseq[2:(length(qseq)-1)])
-      eval <- seq(x.min, x.max, length.out=30)
+      qseq <- seq(0.1,0.9,length.out=30)
+      eval <- quantile(x, qseq)
+      #eval <- seq(x.min, x.max, length.out=30+2)
+      #eval <- eval[2:31]
     }
     else {
+      qseq <- seq(0.1,0.9,length.out=neval)
+      eval <- quantile(x, qseq)
       #eval <- seq(x.min,x.max,length.out=neval)
       #qseq <- seq(0,1,1/(neval+1))
       #eval <- quantile(x, qseq[2:(length(qseq)-1)])
-      eval <- seq(x.min, x.max, length.out=neval)
+      #eval <- seq(x.min, x.max, length.out=(neval+2))
+      #eval <- eval[2:(neval+1)]
     }
   }
   neval <- length(eval)
@@ -62,20 +66,56 @@ kdbwselect <- function(x, eval=NULL, neval=NULL, rho=NULL, kernel="epa",
     bws.imse      <- matrix(NA,2,2)
   }
 
+  
+  ### IMSE-ROT
   h.imse.rot <- sd(x)*C.h*N^(-1/(1+2*p))
   b.imse.rot <- sd(x)*C.b*N^(-1/(1+2*(p+2)+2*p))
   
-
-  
   if (bwselect=="imse-rot") {
-    neval = eval = 1
-    bws <- matrix(NA,neval,2)
-    bws[1,]   <- c(h.imse.rot,  b.imse.rot)
+    bws[,1] <- rep(h.imse.rot, neval)
+    bws[,2] <- rep(b.imse.rot, neval)
   }
   
-  if  (bwselect=="all"  | bwselect=="mse-dpi" | bwselect=="ce-dpi" | bwselect=="ce-rot" | bwselect=="imse-dpi") {
   
-  B.h=V.h=0
+  ### IMSE-ROT
+  if (bwselect=="imse-dpi" | bwselect=="all") {
+  
+  B.h=V.h=0  
+  #qseq.imse <- seq(0,1,1/(imsegrid+1))
+  #eval.imse <- quantile(x, qseq[2:(length(qseq)-1)])
+  qseq.imse <- seq(0.1,0.9,length.out=imsegrid)
+  eval.imse <- quantile(x, qseq.imse)
+  
+  #eval.imse <- seq(x.min, x.max, length.out=(imsegrid+2))
+  #eval.imse <- eval[2:(imsegrid+1)]
+  
+  for (i in 1:imsegrid) {
+    K.b <- kd.K.fun((x-eval.imse[i])/b.imse.rot, v=p+2, r=p,     kernel=kernel)    
+    K.h <- kd.K.fun((x-eval.imse[i])/h.imse.rot, v=p,   r=deriv, kernel=kernel)
+    f.b <- mean(K.b$Kx)/b.imse.rot^(1+p)
+    f.h.rot <- mean(K.h$Kx)/h.imse.rot    
+    B.h[i]  <- f.b*K.h$k.v
+    V.h[i]  <- f.h.rot*K.h$R.v
+  }
+  
+  h.imse.dpi <- kd.bw.fun(mean(V.h), mean(B.h), N, v=p, r=deriv)
+  
+  if (bwselect=="imse-dpi") {
+    bws[,1] <- rep(h.imse.dpi, neval)
+    bws[,2] <- rep(b.imse.rot, neval)
+  }
+
+  }
+  
+  if  (bwselect=="all") {
+    bws.imse[,1] <- c(h.imse.dpi,  b.imse.rot)
+    bws.imse[,2] <- c(h.imse.rot,  b.imse.rot)
+  }
+  
+  
+  if  (bwselect=="all"  | bwselect=="mse-dpi" | bwselect=="ce-dpi" | bwselect=="ce-rot" ) {
+  
+    B.h=V.h=0 
     
   for (i in 1:neval) {
   
@@ -95,8 +135,8 @@ kdbwselect <- function(x, eval=NULL, neval=NULL, rho=NULL, kernel="epa",
     
     if (!is.null(bwcheck)) {
       bw.min     <- sort(abs(x-eval[i]))[bwcheck]
-      h.imse.rot <- max(h.imse.rot, bw.min)
-      b.imse.rot <- max(b.imse.rot, bw.min)
+      #h.imse.rot <- max(h.imse.rot, bw.min)
+      #b.imse.rot <- max(b.imse.rot, bw.min)
     }
     
     K.b <- kd.K.fun((x-eval[i])/b.imse.rot, v=p+2, r=p,     kernel=kernel)    
@@ -156,25 +196,9 @@ kdbwselect <- function(x, eval=NULL, neval=NULL, rho=NULL, kernel="epa",
     
     if(bwselect=="all") bws[i,1:6] <- c(h.mse.dpi,b.mse.dpi, h.ce.dpi,b.ce.dpi, h.ce.rot,b.ce.rot)
   }
-  
-  h.imse.dpi <- kd.bw.fun(mean(V.h), mean(B.h), N, v=p, r=deriv)
-  
-  if (!is.null(bwcheck)) {
-    h.imse.dpi <- max(h.imse.dpi, bw.min)
   }
   
-  if  (bwselect=="all") {
-    bws.imse[,1] <- c(h.imse.dpi,  b.imse.rot)
-    bws.imse[,2] <- c(h.imse.rot,  b.imse.rot)
-  }
   
-  if  (bwselect=="imse-dpi") { 
-    eval=neval=1
-    bws <- matrix(NA,neval,2)
-    bws[1,]   <- c(h.imse.dpi,  b.imse.rot)
-  }
-  
-  }
   
   bws <- cbind(eval,bws)
   out <- list(bws=bws, bws.imse = bws.imse, opt=list(p=p, n=N, neval=neval, kernel=kernel.type, bwselect=bwselect))
@@ -237,7 +261,7 @@ summary.kdbwselect <- function(object,...) {
   }
   
   if (x$opt$bwselect=="imse-dpi" | x$opt$bwselect=="imse-rot") {
-    cat(format(sprintf("%3.3f", x$bws[2:3])  , width=9, justify="right"))
+    cat(format(sprintf("%3.3f", x$bws[1,2:3])  , width=9, justify="right"))
     cat("\n")
   } else {
     for (j in 1:nrow(x$bws)) {

@@ -188,7 +188,7 @@ nprobust.plot <- function(..., alpha=NULL, type=NULL, CItype=NULL,
   # add title, x and y labs
   ########################################
   temp_plot <- temp_plot + labs(x=xlabel, y=ylabel) + ggtitle(title)
-
+ 
   ########################################
   # return the plot
   ########################################

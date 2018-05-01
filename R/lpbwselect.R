@@ -1,6 +1,6 @@
-lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, rho=NULL, kernel="epa", 
-                      bwselect="mse-dpi", bwcheck=NULL, bwregul=1, imsegrid=30, vce="nn", nnmatch=3, 
-                      interior=FALSE, subset=NULL){
+lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, kernel="epa", 
+                      bwselect="mse-dpi", bwcheck=21, bwregul=1, imsegrid=30, vce="nn", cluster = NULL, 
+                      nnmatch=3, interior=FALSE, subset=NULL){
   
   if (!is.null(subset)) {
     x <- x[subset]
@@ -8,9 +8,16 @@ lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, rho=NULL,
   }
   
   na.ok <- complete.cases(x) & complete.cases(y)
+  if (!is.null(cluster)){
+    if (!is.null(subset))  cluster <- cluster[subset]
+    na.ok <- na.ok & complete.cases(cluster)
+  } 
+  
   x     <- x[na.ok]
   y     <- y[na.ok]
+  if (!is.null(cluster)) cluster = cluster[na.ok]
 
+  
   x.max <- max(x); x.min <- min(x)
   N <- length(x)
   
@@ -58,7 +65,7 @@ lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, rho=NULL,
   }
 
   if  (bwselect=="imse-dpi" | bwselect=="all") {
-      est <- lpbwselect.imse.dpi(y=y, x=x, p=p, q=q, deriv=deriv, kernel=kernel, bwcheck=bwcheck, bwregul=bwregul, imsegrid=imsegrid, vce=vce, nnmatch=nnmatch, interior=interior)
+      est <- lpbwselect.imse.dpi(y=y, x=x, cluster=cluster, p=p, q=q, deriv=deriv, kernel=kernel, bwcheck=bwcheck, bwregul=bwregul, imsegrid=imsegrid, vce=vce, nnmatch=nnmatch, interior=interior)
       h.imse.dpi   <- est$h
       b.imse.dpi   <- est$b
       bws[1,1:2]   <- c(h.imse.dpi,  b.imse.dpi)
@@ -82,7 +89,7 @@ lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, rho=NULL,
      for (i in 1:neval) {
      
       if  (bwselect=="mse-dpi" | bwselect=="ce-dpi" | bwselect=="ce-rot" | bwselect=="all") {
-        est <- lpbwselect.mse.dpi(y=y, x=x, eval=eval[i], p=p, q=q, deriv=deriv, kernel=kernel, 
+        est <- lpbwselect.mse.dpi(y=y, x=x, cluster=cluster, eval=eval[i], p=p, q=q, deriv=deriv, kernel=kernel, 
                                 bwcheck=bwcheck, bwregul=bwregul, vce=vce, nnmatch=nnmatch, interior=interior)
         h.mse.dpi  <- est$h
         b.mse.dpi  <- est$b
@@ -101,23 +108,23 @@ lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, rho=NULL,
       
       if  (bwselect=="ce-dpi" | bwselect=="all") {
         h.ce.dpi=b.ce.dpi=0
-        if (deriv==0) {
+        #if (deriv==0) {
           if  (even==TRUE ) { 
             h.ce.dpi <- h.mse.dpi*N^(-((p+2)/((2*p+5)*(p+3))))
             b.ce.dpi <- b.mse.dpi*N^(-((q)/((2*q+3)*(q+3))))
           } else{
-            est <- lpbwselect.ce.dpi(y=y, x=x, h=h.mse.dpi, b=b.mse.dpi, eval=eval[i], p=p, q=q, rho=rho, 
+            est <- lpbwselect.ce.dpi(y=y, x=x, h=h.mse.dpi, b=b.mse.dpi, eval=eval[i], p=p, q=q, deriv=deriv, rho=1, 
                                    kernel=kernel, vce=vce, nnmatch=nnmatch, interior=interior, bwregul=bwregul)
             h.ce.dpi <- est$h
             b.ce.dpi <- b.mse.dpi*N^(-((q+2)/((2*q+5)*(q+3))))
           }
             bws[i,1:2] <- c(h.ce.dpi,  b.ce.dpi)
-        }
+        #}
       }
       
       if  (bwselect=="ce-rot" | bwselect=="all") {
         h.ce.rot=b.ce.rot=0
-        if (deriv==0) {
+        #if (deriv==0) {
           if  (even==TRUE ) { 
             h.ce.rot <- h.mse.dpi*N^(-((p+2)/((2*p+5)*(p+3))))
             b.ce.rot <- b.mse.dpi*N^(-((q)/((2*q+3)*(q+3))))
@@ -126,7 +133,7 @@ lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, rho=NULL,
             b.ce.rot <- b.mse.dpi*N^(-((q+2)/((2*q+5)*(q+3))))
           }
           bws[i,1:2]  <- c(h.ce.rot,  b.ce.rot)
-      }
+      #}
       }
     
       if (bwselect=="all") bws[i,] <- c(h.mse.dpi,b.mse.dpi, h.mse.rot,b.mse.rot,  h.ce.dpi,b.ce.dpi, h.ce.rot,b.ce.rot)
