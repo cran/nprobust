@@ -2,6 +2,7 @@ W.fun = function(u,kernel){
   if (kernel=="epa") w = 0.75*(1-u^2)*(abs(u)<=1)
   if (kernel=="uni") w =          0.5*(abs(u)<=1)
   if (kernel=="tri") w =   (1-abs(u))*(abs(u)<=1)
+  if (kernel=="gau") w =   dnorm(u)
   return(w)
 }
 
@@ -116,6 +117,7 @@ lp.bw.fun <- function(V, Bsq, p, v, N, kernel) {
     if (kernel=="epa") w = 0.75*(1-u^2)*(abs(u)<=1)
     if (kernel=="uni") w =          0.5*(abs(u)<=1)
     if (kernel=="tri") w =   (1-abs(u))*(abs(u)<=1)
+    if (kernel=="gau") w =   dnorm(u)
     return(w)
   }
   
@@ -499,7 +501,8 @@ lpbwselect.mse.dpi = function(y, x, cluster, eval, p, q, deriv, kernel, bwcheck,
 
                      C.c         <- 2.34
   if (kernel=="uni") C.c         <- 1.843
-  if (kernel=="uni") C.c         <- 2.576
+  if (kernel=="tri") C.c         <- 2.576
+  if (kernel=="gau") C.c         <- 1.06
 
   x.iq  <- quantile(x,.75) - quantile(x,.25)
   x.max <- max(x);  x.min <- min(x)

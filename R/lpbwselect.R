@@ -50,9 +50,10 @@ lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, kernel="e
   bwselect <- tolower(bwselect)
   vce      <- tolower(vce)
   
-                     kernel.type <- "Epanechnikov"
-  if (kernel=="uni") kernel.type <- "Uniform"
-  if (kernel=="uni") kernel.type <- "Triangular"
+  kernel.type <- "Epanechnikov"
+  if (kernel=="triangular"   | kernel=="tri") kernel.type <- "Triangular"
+  if (kernel=="uniform"      | kernel=="uni") kernel.type <- "Uniform"
+  if (kernel=="gaussian"     | kernel=="gau") kernel.type <- "Gaussian"
     
   bws           <- matrix(NA,neval,2)
   colnames(bws) <- c("h","b")

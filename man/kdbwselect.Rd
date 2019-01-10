@@ -3,7 +3,8 @@
 \title{Bandwidth Selection Procedures for Kernel Density Estimation and Inference}
 
 \description{
-\code{\link{kdbwselect}} implements bandwidth selectors for kernel density point estimators and inference procedures developed in Calonico, Cattaneo and Farrell (2018a). It also implements other bandwidth selectors available in the literature. See Wand and Jones (1995) for background references.
+\code{\link{kdbwselect}} implements bandwidth selectors for kernel density point estimators and inference procedures developed in Calonico, Cattaneo and Farrell (2018a). See also Calonico, Cattaneo and Farrell (2018c) for related optimality results.
+It also implements other bandwidth selectors available in the literature. See Wand and Jones (1995) for background references.
 
 Companion commands are: \code{\link{kdrobust}} for kernel density point estimation and inference procedures.
 
@@ -49,9 +50,11 @@ bwselect = "mse-dpi", bwcheck=21, imsegrid=30, subset = NULL)
 \item{opt}{A list containing options passed to the function.}
 }
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018a. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference}. Journal of the American Statistical Association, forthcoming.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018a. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference}. Journal of the American Statistical Association, 113(522): 767-779.
 
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Working Paper, University of Michigan.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Journal of Statistical Software, forthcoming.
+
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018c. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_CEopt.pdf}{Coverage Error Optimal Confidence Intervals}. Working Paper.
 
 Fan, J., and Gijbels, I. 1996. Local polynomial modelling and its applications, London: Chapman and Hall.
 

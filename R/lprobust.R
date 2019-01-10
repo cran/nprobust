@@ -1,6 +1,6 @@
 lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=NULL, rho=1, 
-                    kernel="epa", bwselect=NULL, bwcheck=21, bwregul=1, imsegrid=30,
-                    vce="nn", cluster=NULL, nnmatch=3, level=95, interior = FALSE, subset = NULL) {
+                    kernel="epa", bwselect=NULL, bwcheck=21, bwregul=1, imsegrid=30, vce="nn", covgrid = FALSE,
+                    cluster=NULL, nnmatch=3, level=95, interior = FALSE, subset = NULL) {
   
   if (!is.null(subset)) {
     x <- x[subset]
@@ -66,7 +66,7 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
   
   #####################################################   CHECK ERRORS
   exit=0
-    if (kernel!="uni" & kernel!="uniform" & kernel!="tri" & kernel!="triangular" & kernel!="epa" & kernel!="epanechnikov" & kernel!="" ){
+    if (kernel!="gau" & kernel!="gaussian" & kernel!="uni" & kernel!="uniform" & kernel!="tri" & kernel!="triangular" & kernel!="epa" & kernel!="epanechnikov" & kernel!="" ){
       print("kernel incorrectly specified")
       exit <- 1
     }
@@ -86,11 +86,10 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
   #    exit <- 1
   #  }
     
-    if (p<0 | deriv<0 | nnmatch<=0 ){
-      print("p,q,deriv and matches should be positive integers")
-      exit <- 1
-    }
-
+  if (p<0 | deriv<0 | nnmatch<=0 ){
+     print("p,q,deriv and matches should be positive integers")
+     exit <- 1
+  }
     
   if (deriv>p){
     print("deriv can only be equal or lower p")
@@ -125,10 +124,10 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
     }
     #if (!is.null(h) & rho>0) b <- h/rho
     
-  kernel.type <- "Triangular"
-  if (kernel=="epanechnikov" | kernel=="epa") kernel.type <- "Epanechnikov"
+  kernel.type <- "Epanechnikov"
+  if (kernel=="triangular"   | kernel=="tri") kernel.type <- "Triangular"
   if (kernel=="uniform"      | kernel=="uni") kernel.type <- "Uniform"
-  
+  if (kernel=="gaussian"     | kernel=="gau") kernel.type <- "Gaussian"
 
     
   ############################################################################################
@@ -147,10 +146,23 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
       rho   <- h/b
     }
   
+  dups <- dupsid <- 0	
+  if (vce=="nn") {
+    for (j in 1:N) {
+      dups[j]=sum(x==x[j])
+    }
+    j=1
+    while (j<=N) {
+      dupsid[j:(j+dups[j]-1)] <- 1:dups[j]
+      j <- j+dups[j]
+    }
+  }
   
+  cov.p = NULL
   ####################################################
   Estimate=matrix(NA,neval,8)
   colnames(Estimate)=c("eval","h","b","N","tau.us","tau.bc","se.us","se.rb")
+  
   
   for (i in 1:neval) {
     
@@ -185,14 +197,16 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
     
     edups <- edupsid <- 0	
     if (vce=="nn") {
-      for (j in 1:eN) {
-        edups[j]=sum(eX==eX[j])
-      }
-      j=1
-      while (j<=eN) {
-        edupsid[j:(j+edups[j]-1)] <- 1:edups[j]
-        j <- j+edups[j]
-      }
+      edups   <- dups[ind]
+      edupsid <- dupsid[ind]
+    #  for (j in 1:eN) {
+    #    edups[j]=sum(eX==eX[j])
+    #  }
+    #  j=1
+    #  while (j<=eN) {
+    #    edupsid[j:(j+edups[j]-1)] <- 1:edups[j]
+    #    j <- j+edups[j]
+    #  }
     }
     
   u   <- (eX-eval[i])/h[i]
@@ -233,7 +247,138 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
 	
 	Estimate[i,] <- c(eval[i], h[i], b[i], eN, tau.cl, tau.bc, se.cl, se.rb) 
   }
-  out        <-list(Estimate=Estimate, opt=list(p=p, q=q, deriv=deriv, kernel=kernel.type, n=N, neval=neval, bwselect=bwselect))
+  
+  cov.us = cov.rb = matrix(NA,neval,neval)
+  
+  if (covgrid == TRUE) {
+  
+    for (i in 1:neval) {
+      for (j in i:neval) {
+    
+        #h.max     <- max(h[i], h[j])
+        #b.max     <- max(b[i], b[j])
+        
+        w.h.i   <- W.fun((x-eval[i])/h[i], kernel)/h[i]
+        w.b.i   <- W.fun((x-eval[i])/b[i], kernel)/b[i]
+        ind.h.i <- w.h.i>0;  ind.b.i <- w.b.i>0
+        N.h.i   <- sum(ind.h.i);  N.b.i <- sum(ind.b.i)
+        ind.i   <- ind.b.i
+        if (h[i]>b[i]) ind.i <- ind.h.i   
+        
+        w.h.j   <- W.fun((x-eval[j])/h[j], kernel)/h[j]
+        w.b.j   <- W.fun((x-eval[j])/b[j], kernel)/b[j]
+        ind.h.j <- w.h.j>0;  ind.b.j <- w.b.j>0
+        N.h.j   <- sum(ind.h.j);  N.b.j <- sum(ind.b.j)
+        ind.j   <- ind.b.j
+        if (h[j]>b[j]) ind.j <- ind.h.j   
+        
+        ind = ind.i=="TRUE" | ind.j=="TRUE"
+        
+        eN  <- sum(ind)
+        eY  <- y[ind]
+        eX  <- x[ind]
+        
+        W.h.i <- w.h.i[ind]
+        W.b.i <- w.b.i[ind]
+        
+        W.h.j <- w.h.j[ind]
+        W.b.j <- w.b.j[ind]
+        
+        eC = NULL
+        if (!is.null(cluster)) eC = cluster[ind]
+        
+        edups <- edupsid <- 0	
+        if (vce=="nn") {
+          edups   <- dups[ind]
+          edupsid <- dupsid[ind]
+        #  for (k in 1:eN) {
+        #    edups[k]=sum(eX==eX[k])
+        #  }
+        #  k=1
+        #  while (k<=eN) {
+        #    edupsid[k:(k+edups[k]-1)] <- 1:edups[k]
+        #    k <- k+edups[k]
+        #  }
+        }
+        
+        u.i   <- (eX-eval[i])/h[i]
+        R.q.i <- matrix(NA,eN,(q+1))
+        for (k in 1:(q+1))  R.q.i[,k] <- (eX-eval[i])^(k-1)
+        R.p.i <- R.q.i[,1:(p+1)]
+        
+        u.j   <- (eX-eval[j])/h[j]
+        R.q.j <- matrix(NA,eN,(q+1))
+        for (k in 1:(q+1))  R.q.j[,k] <- (eX-eval[j])^(k-1)
+        R.p.j <- R.q.j[,1:(p+1)]
+        
+        e.p1    <- matrix(0,(q+1),1); e.p1[p+2]=1
+        e.v     <- matrix(0,(p+1),1); e.v[deriv+1]=1
+        
+        #display("Computing RD estimates.")
+        L.i <- crossprod(R.p.i*W.h.i,u.i^(p+1)) 
+        invG.q.i  <- qrXXinv((sqrt(W.b.i)*R.q.i))
+        invG.p.i  <- qrXXinv((sqrt(W.h.i)*R.p.i))
+        Q.q.i     <- t(t(R.p.i*W.h.i) - h[i]^(p+1)*(L.i%*%t(e.p1))%*%t(t(invG.q.i%*%t(R.q.i))*W.b.i))
+        beta.p.i  <- invG.p.i%*%crossprod(R.p.i*W.h.i,eY); beta.q.i <- invG.q.i%*%crossprod(R.q.i*W.b.i,eY); 
+        beta.bc.i <- invG.p.i%*%crossprod(Q.q.i,eY) 
+
+        L.j <- crossprod(R.p.j*W.h.j,u.j^(p+1)) 
+        invG.q.j  <- qrXXinv((sqrt(W.b.j)*R.q.j))
+        invG.p.j  <- qrXXinv((sqrt(W.h.j)*R.p.j))
+        Q.q.j     <- t(t(R.p.j*W.h.j) - h[j]^(p+1)*(L.j%*%t(e.p1))%*%t(t(invG.q.j%*%t(R.q.j))*W.b.j))
+        beta.p.j  <- invG.p.j%*%crossprod(R.p.j*W.h.j,eY); beta.q.j <- invG.q.j%*%crossprod(R.q.j*W.b.j,eY); 
+        beta.bc.j <- invG.p.j%*%crossprod(Q.q.j,eY) 
+        
+        #tau.cl <- factorial(deriv)*beta.p[(deriv+1),1]
+        #tau.bc <- factorial(deriv)*beta.bc[(deriv+1),1]
+        
+        hii.i=predicts.p.i=predicts.q.i=hii.j=predicts.p.j=predicts.q.j=0
+        if (vce=="hc0" | vce=="hc1" | vce=="hc2" | vce=="hc3") {
+          predicts.p.i <- R.p.i%*%beta.p.i
+          predicts.q.i <- R.q.i%*%beta.q.i
+          predicts.p.j <- R.p.j%*%beta.p.j
+          predicts.q.j <- R.q.j%*%beta.q.j
+          if (vce=="hc2" | vce=="hc3") {
+            hii.i = hii.j = matrix(NA,eN,1)	
+            for (k in 1:eN) {
+              hii.i[k] <- R.p.i[k,]%*%invG.p.i%*%(R.p.i*W.h.i)[k,]
+              hii.j[k] <- R.p.j[k,]%*%invG.p.j%*%(R.p.j*W.h.j)[k,]
+            }
+          }
+        }
+        
+        res.h.i <- lprobust.res(eX, eY, predicts.p.i, hii.i, vce, nnmatch, edups, edupsid, p+1)
+        if (vce=="nn") {
+          res.b.i <- res.h.i
+        }      else           res.b.i <- lprobust.res(eX, eY, predicts.q.i, hii.i, vce, nnmatch, edups, edupsid, q+1)
+        
+        
+        res.h.j <- lprobust.res(eX, eY, predicts.p.j, hii.j, vce, nnmatch, edups, edupsid, p+1)
+        if (vce=="nn") {
+          res.b.j <- res.h.j
+        }       else           res.b.j <- lprobust.res(eX, eY, predicts.q.j, hii.j, vce, nnmatch, edups, edupsid, q+1)
+        
+        #V.Y.cl <- invG.p%*%lprobust.vce(as.matrix(R.p*W.h), res.h, eC)%*%invG.p
+        #V.Y.bc <- invG.p%*%lprobust.vce(Q.q,     res.b, eC)%*%invG.p
+        
+        V.us.i =  factorial(deriv)^2*invG.p.i%*%t(c(res.h.i)*R.p.i*W.h.i)
+        V.us.j =  factorial(deriv)^2*invG.p.j%*%t(c(res.h.j)*R.p.j*W.h.j)
+        
+        V.rb.i =  factorial(deriv)^2*invG.p.i%*%t(c(res.b.i)*Q.q.i)
+        V.rb.j =  factorial(deriv)^2*invG.p.j%*%t(c(res.b.j)*Q.q.j)
+        
+        cov.us[i,j] = (V.us.i%*%t(V.us.j))[deriv+1,deriv+1]
+        cov.rb[i,j] = (V.rb.i%*%t(V.rb.j))[deriv+1,deriv+1]
+        
+        cov.us[j,i]= cov.us[i,j]
+        cov.rb[j,i]= cov.rb[i,j]
+      }
+    }
+    
+  }
+    
+    
+  out        <-list(Estimate=Estimate, opt=list(p=p, q=q, deriv=deriv, kernel=kernel.type, n=N, neval=neval, bwselect=bwselect), cov.us=cov.us, cov.rb=cov.rb)
   out$call   <- match.call()
   class(out) <- "lprobust"
   return(out)

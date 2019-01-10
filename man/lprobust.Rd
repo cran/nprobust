@@ -1,8 +1,10 @@
 \name{lprobust}
 \alias{lprobust}
 \title{Local Polynomial Methods with Robust Bias-Corrected Inference}
+
 \description{
-\code{\link{lprobust}} implements local polynomial regression point estimators, with robust bias-corrected confidence intervals and inference procedures developed in Calonico, Cattaneo and Farrell (2018a). It also implements other estimation and inference procedures available in the literature. See Wand and Jones (1995) and Fan and Gijbels (1996) for background references.
+\code{\link{lprobust}} implements local polynomial regression point estimators, with robust bias-corrected confidence intervals and inference procedures developed in Calonico, Cattaneo and Farrell (2018a). See also Calonico, Cattaneo and Farrell (2018c) for related optimality results.
+It also implements other estimation and inference procedures available in the literature. See Wand and Jones (1995) and Fan and Gijbels (1996) for background references.
 
 Companion commands: \code{\link{lpbwselect}} for local polynomial data-driven bandwidth selection, and \code{\link{nprobust.plot}} for plotting results.
 
@@ -11,8 +13,8 @@ A detailed introduction to this command is given in Calonico, Cattaneo and Farre
 \usage{
 lprobust(y, x, eval = NULL, neval = NULL, p = NULL, deriv = NULL, 
 h = NULL, b = NULL, rho = 1, kernel = "epa", bwselect = NULL, 
-bwcheck = 21, bwregul = 1, imsegrid = 30, vce = "nn", cluster = NULL, 
-nnmatch = 3, level = 95, interior = FALSE, subset = NULL) 
+bwcheck = 21, bwregul = 1, imsegrid = 30, vce = "nn", covgrid = FALSE, 
+cluster = NULL, nnmatch = 3, level = 95, interior = FALSE, subset = NULL) 
 }
 \arguments{
   \item{y}{dependent variable.}
@@ -33,7 +35,7 @@ nnmatch = 3, level = 95, interior = FALSE, subset = NULL)
   
   \item{rho}{Sets \code{b=h/rho}. Default is \code{rho = 1}.}
   
-  \item{kernel}{kernel function used to construct local polynomial estimators. Options are \code{epa} for the epanechnikov kernel, \code{tri} for the triangular kernel and \code{uni} for the uniform kernel. Default is \code{kernel = epa}.}
+  \item{kernel}{kernel function used to construct local polynomial estimators. Options are \code{epa} for the epanechnikov kernel, \code{tri} for the triangular kernel, \code{uni} for the uniform kernel and \code{gau} for the gaussian kernel. Default is \code{kernel = epa}.}
   
   \item{bwselect}{bandwidth selection procedure to be used via \code{\link{lpbwselect}}. By default it computes \code{h} and sets \code{b=h/rho} (with \code{rho=1} by default). It computes both \code{h} and \code{b} if \code{rho} is set equal to zero. Options are:
   
@@ -71,6 +73,8 @@ nnmatch = 3, level = 95, interior = FALSE, subset = NULL)
 	
 	\code{hc3} heteroskedasticity-robust plug-in residuals variance estimator with \code{hc3} weights.}
 
+  \item{covgrid}{if TRUE, it computes two covariance matrices (cov.us and cov.rb) for classical and robust covariances across point estimators over the grid of evaluation points.}
+  
   \item{cluster}{indicates the cluster ID variable used for cluster-robust variance estimation with degrees-of-freedom weights. By default it is combined with \code{vce=nn} for cluster-robust nearest neighbor variance estimation. Another option is plug-in residuals combined with \code{vce=hc1}.}
 
   \item{nnmatch}{to be combined with for \code{vce=nn} for heteroskedasticity-robust nearest neighbor variance estimator with \code{nnmatch} indicating the minimum number of neighbors to be used. Default is \code{nnmatch=3}}.
@@ -89,9 +93,11 @@ nnmatch = 3, level = 95, interior = FALSE, subset = NULL)
 \item{opt}{A list containing options passed to the function.}
 }
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018a. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference.} Journal of the American Statistical Association, forthcoming.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018a. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference}. Journal of the American Statistical Association, 113(522): 767-779.
 
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Journal of Statistical Software, forthcoming.
+
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018c. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_CEopt.pdf}{Coverage Error Optimal Confidence Intervals}. Working Paper.
 
 Fan, J., and Gijbels, I. 1996. Local polynomial modelling and its applications, London: Chapman and Hall.
 

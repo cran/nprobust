@@ -3,7 +3,8 @@
 \title{Bandwidth Selection Procedures for Local Polynomial Regression Estimation and Inference}
 
 \description{
-\code{\link{lpbwselect}} implements bandwidth selectors for local polynomial regression point estimators and inference procedures developed in Calonico, Cattaneo and Farrell (2018a). It also implements other bandwidth selectors available in the literature. See Wand and Jones (1995) and Fan and Gijbels (1996) for background references.
+\code{\link{lpbwselect}} implements bandwidth selectors for local polynomial regression point estimators and inference procedures developed in Calonico, Cattaneo and Farrell (2018a). See also Calonico, Cattaneo and Farrell (2018c) for related optimality results. 
+It also implements other bandwidth selectors available in the literature. See Wand and Jones (1995) and Fan and Gijbels (1996) for background references.
 
 Companion commands: \code{\link{lprobust}} for local polynomial point estimation and inference procedures.
 
@@ -28,7 +29,7 @@ nnmatch = 3, interior = FALSE, subset = NULL)
   
   \item{deriv}{derivative order of the regression function to be estimated. Default is \code{deriv=0} (regression function).}
   
-  \item{kernel}{kernel function used to construct local polynomial estimators. Options are \code{epa} for the epanechnikov kernel, \code{tri} for the triangular kernel and \code{uni} for the uniform kernel. Default is \code{kernel = epa}.}
+  \item{kernel}{kernel function used to construct local polynomial estimators. Options are \code{epa} for the epanechnikov kernel, \code{tri} for the triangular kernel, \code{uni} for the uniform kernel and \code{gau} for the gaussian kernel. Default is \code{kernel = epa}.}
   
   \item{bwselect}{bandwidth selection procedure to be used. Options are:
   
@@ -80,9 +81,11 @@ nnmatch = 3, interior = FALSE, subset = NULL)
 \item{opt}{A list containing options passed to the function.}
 }
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018a. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference.} Journal of the American Statistical Association, forthcoming.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018a. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference}. Journal of the American Statistical Association, 113(522): 767-779.
 
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference.} Working paper.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018b. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Journal of Statistical Software, forthcoming.
+
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018c. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_CEopt.pdf}{Coverage Error Optimal Confidence Intervals}. Working Paper.
 
 Fan, J., and Gijbels, I. 1996. Local polynomial modelling and its applications, London: Chapman and Hall.
 
