@@ -2,7 +2,7 @@
 \alias{nprobust.plot}
 \title{Graphical Presentation of Results from \code{nprobust} Package.}
 \description{
-\code{nprobust.plot} plots estimated density and regression function using the \code{nprobust} package. A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2018).
+\code{nprobust.plot} plots estimated density and regression function using the \code{nprobust} package. A detailed introduction to this command is given in Calonico, Cattaneo and Farrell (2019).
 
 Companion commands: \code{\link{lprobust}} for local polynomial point estimation and inference procedures, and \code{\link{kdrobust}} for kernel density point estimation and inference procedures.
 
@@ -89,15 +89,15 @@ est <- lprobust(y,x)
 nprobust.plot(est)
 }
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Journal of Statistical Software, forthcoming.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2019. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2019_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Journal of Statistical Software, forthcoming.
 }
 \seealso{
 \code{\link{lprobust}}, \code{\link{kdrobust}}, \code{\link{ggplot2}}
 }
 \author{
-Sebastian Calonico, University of Miami, Coral Gables, FL.  \email{scalonico@bus.miami.edu}.
+Sebastian Calonico, Columbia University, New York, NY.  \email{sebastian.calonico@columbia.edu}.
 
-Matias D. Cattaneo, University of Michigan, Ann Arbor, MI.  \email{cattaneo@umich.edu}.
+Matias D. Cattaneo, Princeton University, Princeton, NJ.  \email{cattaneo@princeton.edu}.
 
 Max H. Farrell, University of Chicago, Chicago, IL. \email{max.farrell@chicagobooth.edu}.
 }

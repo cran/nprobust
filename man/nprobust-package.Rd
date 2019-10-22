@@ -8,8 +8,8 @@
 \tabular{ll}{
 Package: \tab nprobust\cr
 Type: \tab Package\cr
-Version: \tab 0.1.4\cr
-Date: \tab 2019-01-07\cr
+Version: \tab 0.2.0\cr
+Date: \tab 2019-10-21\cr
 License: \tab GPL-2\cr 
 }
 Function for LPR estimation and inference: \code{\link{lprobust}}\cr
@@ -19,9 +19,9 @@ Function for KDE bandwidth selection: \code{\link{kdbwselect}}\cr
 Function for graphical analysis: \code{\link{nprobust.plot}}\cr
 }
 \author{
-Sebastian Calonico, University of Miami, Coral Gables, FL.  \email{scalonico@bus.miami.edu}.
+Sebastian Calonico, Columbia University, New York, NY.  \email{sebastian.calonico@columbia.edu}.
 
-Matias D. Cattaneo, University of Michigan, Ann Arbor, MI.  \email{cattaneo@umich.edu}.
+Matias D. Cattaneo, Princeton University, Princeton, NJ.  \email{cattaneo@princeton.edu}.
 
 Max H. Farrell, University of Chicago, Chicago, IL. \email{max.farrell@chicagobooth.edu}.
 }
