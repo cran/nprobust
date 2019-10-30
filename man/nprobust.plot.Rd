@@ -89,7 +89,7 @@ est <- lprobust(y,x)
 nprobust.plot(est)
 }
 \references{
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2019. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2019_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Journal of Statistical Software, forthcoming.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2019. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2019_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Journal of Statistical Software, 91(8). \doi{doi:10.18637/jss.v091.i08}.
 }
 \seealso{
 \code{\link{lprobust}}, \code{\link{kdrobust}}, \code{\link{ggplot2}}
