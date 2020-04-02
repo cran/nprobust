@@ -509,8 +509,11 @@ lpbwselect.mse.dpi = function(y, x, cluster, eval, p, q, deriv, kernel, bwcheck,
   range <- x.max - x.min
   N     <- length(x)
 
+  bw.max = max(abs(eval-x.min),abs(eval-x.max))
+  
   c.bw  <- c(C.c*min(c(sd(x),x.iq/1.349))*N^(-1/5))
-
+  c.bw <- min(c.bw, bw.max)
+  
   dups <- dupsid <- hii <- predicts <- NULL
   if (vce=="nn") {
     order.x = order(x)
@@ -541,9 +544,8 @@ lpbwselect.mse.dpi = function(y, x, cluster, eval, p, q, deriv, kernel, bwcheck,
       bw.fun  <-function(H) {abs(H^(2*(q+1)+2-2*(q+1))*(C.d1$B1 + H*C.d1$B2)^2 + C.d1$V/(N*H^(1+2*(q+1))))}
       bw.mp2 <- optimize(bw.fun, interval=c(.Machine$double.eps, range))$minimum
    }
-    
-    if (!is.null(bwcheck)) bw.mp2 <- max(bw.mp2, bw.min)
-    
+   
+
     C.d2 <- lprobust.bw(y, x, cluster, c=eval, o=q+2, nu=q+2, o.B=q+3, h.V=c.bw, h.B1=range, h.B2=range, 0, vce, nnmatch, kernel, dups, dupsid)
     if (even==FALSE | interior==TRUE) {
       bw.mp3 <- c(C.d2$bw)
@@ -552,6 +554,10 @@ lpbwselect.mse.dpi = function(y, x, cluster, eval, p, q, deriv, kernel, bwcheck,
       bw.fun  <-function(H) {abs(H^(2*(q+2)+2-2*(q+2))*(C.d2$B1 + H*C.d2$B2)^2 + C.d2$V/(N*H^(1+2*(q+2))))}
       bw.mp3 <- optimize(bw.fun, interval=c(.Machine$double.eps, range))$minimum
     }
+    
+    # adjust
+    bw.mp2 <- min(bw.mp2, bw.max) 
+    bw.mp3 <- min(bw.mp3, bw.max) 
     
     if (!is.null(bwcheck)) {
       bw.mp2 <- max(bw.mp2, bw.min)
@@ -570,6 +576,7 @@ lpbwselect.mse.dpi = function(y, x, cluster, eval, p, q, deriv, kernel, bwcheck,
       b.mse.dpi <- optimize(b.bw.fun, interval=c(.Machine$double.eps, range))$minimum
     }
     
+    b.mse.dpi <- min(b.mse.dpi, bw.max) 
     if (!is.null(bwcheck)) b.mse.dpi <- max(b.mse.dpi, bw.min)
   
     bw.mp1 = b.mse.dpi
@@ -584,6 +591,7 @@ lpbwselect.mse.dpi = function(y, x, cluster, eval, p, q, deriv, kernel, bwcheck,
       h.mse.dpi <- optimize(h.bw.fun, interval=c(.Machine$double.eps, range))$minimum
     }
     
+    h.mse.dpi <- min(h.mse.dpi, bw.max) 
     if (!is.null(bwcheck)) h.mse.dpi <- max(h.mse.dpi, bw.min)
   
     if (even==FALSE | interior==TRUE) {
@@ -628,7 +636,7 @@ lpbwselect.mse.rot = function(y, x, eval, p, deriv, kernel){
   #s2.q    <- sigma(gamma.q)^2
 
   m.p.1 <- lprobust(y=y, x=x, h=range, eval=eval, p=p+3, deriv=(p+1), kernel=kernel, vce="nn")$Estimate[5]
-  m.p.2 <- lprobust(y=y, x=x, h=range, eval=eval, p=p+3, deriv=(p+1), kernel=kernel, vce="nn")$Estimate[5]
+  m.p.2 <- lprobust(y=y, x=x, h=range, eval=eval, p=p+3, deriv=(p+2), kernel=kernel, vce="nn")$Estimate[5]
   
   #m.q.1 <- lprobust(y=y, x=x, h=range, eval=eval, p=q+3, deriv=(q+1), kernel=kernel, vce=vce)$Estimate[5]
   #m.q.2 <- lprobust(y=y, x=x, h=range, eval=eval, p=q+3, deriv=(q+1), kernel=kernel, vce=vce)$Estimate[5]
@@ -641,7 +649,6 @@ lpbwselect.mse.rot = function(y, x, eval, p, deriv, kernel){
   #h.mse.rot <- lp.bw.fun(s2.p/f0.pilot, (m.p.1/factorial(p+1))^2, p, deriv, N, kernel)
   #b.mse.rot <- lp.bw.fun(s2.q/f0.pilot, (m.q.1/factorial(q+1))^2, q, p+1  , N, kernel)
 
-   
   bw <- lp.bw.fun(s2.hat/f.hat, (m.p.1/factorial(p+1))^2, p, deriv, N, kernel)
   
   B1 = bw$C1*m.p.1/factorial(p+1)

@@ -2,7 +2,7 @@ lprobust = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, h=NULL, b=N
                     kernel="epa", bwselect=NULL, bwcheck=21, bwregul=1, imsegrid=30, vce="nn", covgrid = FALSE,
                     cluster=NULL, nnmatch=3, level=95, interior = FALSE, subset = NULL) {
   
-  if (!is.null(subset)) {
+  if (!is.null(subset)) { 
     x <- x[subset]
     y <- y[subset]
   }

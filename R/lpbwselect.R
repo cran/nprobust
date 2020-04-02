@@ -66,7 +66,7 @@ lpbwselect = function(y, x, eval=NULL, neval=NULL, p=NULL, deriv=NULL, kernel="e
   }
 
   if  (bwselect=="imse-dpi" | bwselect=="all") {
-      est <- lpbwselect.imse.dpi(y=y, x=x, cluster=cluster, p=p, q=q, deriv=deriv, kernel=kernel, bwcheck=bwcheck, bwregul=bwregul, imsegrid=imsegrid, vce=vce, nnmatch=nnmatch, interior=interior)
+      est <- lpbwselect.imse.dpi(y=y, x=x, cluster=cluster,               p=p, q=q, deriv=deriv, kernel=kernel, bwcheck=bwcheck, bwregul=bwregul, imsegrid=imsegrid, vce=vce, nnmatch=nnmatch, interior=interior)
       h.imse.dpi   <- est$h
       b.imse.dpi   <- est$b
       bws[1,1:2]   <- c(h.imse.dpi,  b.imse.dpi)
