@@ -1,4 +1,4 @@
-eddb38e7ebf17ac51d350b55ad61795f *DESCRIPTION
+38cb088721883a06b46817936a383c40 *DESCRIPTION
 3b99bf0c063d4a7684ea598efcd9a984 *NAMESPACE
 fffd14878e9971e7d784f4d78d63980a *R/RcppExports.R
 6891edf52bea8c92b1569a776cb78786 *R/kdbwselect.R
@@ -7,14 +7,14 @@ b84b56f8c2b444be8da0b2aaf4b64cc2 *R/lpbwselect.R
 34f66dd03897d1967047153e096b16e5 *R/lprobust.R
 fbb28983861775a1ce4dcd7af367ae33 *R/npfunctions.R
 158182a95f8707cdd3fdc244b69c7e0c *R/nprobust.plot.R
-13fac6f5e02199262a700fc6a3de5648 *build/partial.rdb
+9c6931925122b8f06665f7b2fdf27ac8 *build/partial.rdb
 2236366311d28d8e8f24d265035ab13a *inst/CITATION
-36cb2c42228c356649326fa01a119fe0 *man/kdbwselect.Rd
-f661700319514d8677de3a7a9075ac50 *man/kdrobust.Rd
-26354043d7dfc771ba1ebc0d9226ac39 *man/lpbwselect.Rd
-18459f8dfb13bd71a6af6ca47ab10393 *man/lprobust.Rd
-2c2eb02f2b807b5947872d9f287cce81 *man/nprobust-package.Rd
-becd55228f98ea106580c28da7287758 *man/nprobust.plot.Rd
+ba034aceb85e6283cc4f838214338046 *man/kdbwselect.Rd
+f36a7fc96a1f88e8192a4976bd9fb8e5 *man/kdrobust.Rd
+d784a46c51f76d32ead7c0b0c180b8dc *man/lpbwselect.Rd
+48b2df318782bd5b0b6b52123664653a *man/lprobust.Rd
+c0a611c1825be7ff36006fab16263fb2 *man/nprobust-package.Rd
+a60c9c938207e9bd3c3f8bcec0897c56 *man/nprobust.plot.Rd
 d130126fffe06c78492e858106ae05c9 *src/Makevars
 d130126fffe06c78492e858106ae05c9 *src/Makevars.win
 c91a34b9d84849118cb76c6a505cedae *src/RcppExports.cpp
