@@ -8,8 +8,8 @@
 \tabular{ll}{
 Package: \tab nprobust\cr
 Type: \tab Package\cr
-Version: \tab 0.4.0\cr
-Date: \tab 2020-08-24\cr
+Version: \tab 0.5.0\cr
+Date: \tab 2025-04-03\cr
 License: \tab GPL-2\cr 
 }
 Function for LPR estimation and inference: \code{\link{lprobust}}\cr
@@ -24,10 +24,10 @@ Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018. \href{https://nppackages.
 Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2019. \href{https://nppackages.github.io/references/Calonico-Cattaneo-Farrell_2019_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Journal of Statistical Software, 91(8): 1-33. \doi{http://dx.doi.org/10.18637/jss.v091.i08}.
 }
 \author{
-Sebastian Calonico, Columbia University, New York, NY.  \email{sebastian.calonico@columbia.edu}.
+Sebastian Calonico, University of California, Davis, CA.  \email{scalonico@ucdavis.edu}.
 
 Matias D. Cattaneo, Princeton University, Princeton, NJ.  \email{cattaneo@princeton.edu}.
 
-Max H. Farrell, University of Chicago, Chicago, IL. \email{max.farrell@chicagobooth.edu}.
+Max H. Farrell, University of California, Santa Barbara, CA. \email{maxhfarrell@ucsb.edu}.
 }
 

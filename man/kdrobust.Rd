@@ -3,7 +3,7 @@
 \title{Kernel Density Methods with Robust Bias-Corrected Inference}
 
 \description{
-\code{\link{kdrobust}} implements kernel density point estimators, with robust bias-corrected confidence intervals and inference procedures developed in Calonico, Cattaneo and Farrell (2018). See also Calonico, Cattaneo and Farrell (2020) for related optimality results.
+\code{\link{kdrobust}} implements kernel density point estimators, with robust bias-corrected confidence intervals and inference procedures developed in Calonico, Cattaneo and Farrell (2018). See also Calonico, Cattaneo and Farrell (2022) for related optimality results.
 It also implements other estimation and inference procedures available in the literature. See Wand and Jones (1995) for background references.
 
 Companion commands: \code{\link{kdbwselect}} for kernel density data-driven bandwidth selection, and \code{\link{nprobust.plot}} for plotting results.
@@ -64,18 +64,18 @@ Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018. \href{https://nppackages.
 
 Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2019. \href{https://nppackages.github.io/references/Calonico-Cattaneo-Farrell_2019_JSS.pdf}{nprobust: Nonparametric Kernel-Based Estimation and Robust Bias-Corrected Inference}. Journal of Statistical Software, 91(8): 1-33. \doi{http://dx.doi.org/10.18637/jss.v091.i08}.
 
-Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2020. \href{https://nppackages.github.io/references/Calonico-Cattaneo-Farrell_2020_CEopt.pdf}{Coverage Error Optimal Confidence Intervals for Local Polynomial Regression}. Working Paper.
+Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2022. \href{https://rdpackages.github.io/references/Calonico-Cattaneo-Farrell_2022_Bernoulli.pdf}{Coverage Error Optimal Confidence Intervals for Local Polynomial Regression}. Bernoulli, 28(4): 2998-3022.
 
 Fan, J., and Gijbels, I. 1996. Local polynomial modelling and its applications, London: Chapman and Hall.
 
 Wand, M., and Jones, M. 1995. Kernel Smoothing, Florida: Chapman & Hall/CRC.
 }
 \author{
-Sebastian Calonico, Columbia University, New York, NY.  \email{sebastian.calonico@columbia.edu}.
+Sebastian Calonico, University of California, Davis, CA.  \email{scalonico@ucdavis.edu}.
 
 Matias D. Cattaneo, Princeton University, Princeton, NJ.  \email{cattaneo@princeton.edu}.
 
-Max H. Farrell, University of Chicago, Chicago, IL. \email{max.farrell@chicagobooth.edu}.
+Max H. Farrell, University of California, Santa Barbara, CA. \email{maxhfarrell@ucsb.edu}.
 }
 \examples{
 x   <- rnorm(500)
